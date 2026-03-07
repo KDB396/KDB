@@ -1,0 +1,104 @@
+:root {
+    --primary: #ff4500;
+    --cyan: #00ffea;
+    --pink: #ff00aa;
+    --dark: #0a0a0a;
+}
+
+/* Scrollbar Custom */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+/* Loader */
+#loader {
+    position: fixed;
+    inset: 0;
+    background: var(--dark);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s ease;
+}
+#loader.hidden { opacity: 0; pointer-events: none; }
+
+/* Sidebars Fixées */
+.sidebar-container {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 40;
+    pointer-events: none;
+}
+.sidebar-left { left: 1.5vw; transform: translateY(-50%) rotate(180deg); }
+.sidebar-right { right: 1.5vw; }
+
+.sidebar-text {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(4vw, 6vw, 100px);
+    letter-spacing: 0.5em;
+    color: var(--cyan);
+    text-shadow: 0 0 15px var(--cyan), 0 0 40px var(--pink);
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    animation: rotate3D 25s linear infinite;
+    opacity: 0.4;
+}
+
+@keyframes rotate3D {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+}
+
+/* Elements UI */
+.music-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.music-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-10px) scale(1.02);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.contact-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 1.25rem;
+    border-radius: 1rem;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+.contact-input:focus {
+    border-color: var(--primary);
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 0 20px rgba(255,69,0,0.1);
+}
+
+.social-link {
+    padding: 1.5rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    color: white;
+    transition: 0.4s;
+}
+.social-link:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-5px) rotate(5deg);
+    background: rgba(255, 69, 0, 0.05);
+}
+
+@keyframes float {
+    0% { transform: translateY(0); opacity: 0; }
+    50% { opacity: 0.4; }
+    100% { transform: translateY(-120px); opacity: 0; }
+}

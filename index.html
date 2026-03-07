@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDB | Official Artist Site</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Rubik+Glitch&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: { primary: '#ff4500', dark: '#0a0a0a' },
+            fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Rubik Glitch', 'sans-serif'] },
+          }
+        }
+      }
+    </script>
+</head>
+<body class="antialiased bg-[#0a0a0a] text-white selection:bg-primary selection:text-white">
+
+  <div id="loader">
+    <div class="text-6xl md:text-8xl font-display text-primary animate-pulse">KDB.EXE</div>
+  </div>
+
+  <div class="sidebar-container sidebar-left"><div class="sidebar-text">KDB.EXE</div></div>
+  <div class="sidebar-container sidebar-right"><div class="sidebar-text">KDB.EXE</div></div>
+
+  <video id="bgVideo" autoplay muted loop playsinline class="fixed inset-0 w-full h-full object-cover opacity-30 z-0"></video>
+
+  <header class="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-white/5 bg-black/40">
+    <nav class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+      <div class="text-3xl font-display font-bold tracking-tighter text-primary">KDB</div>
+      
+      <div class="hidden md:flex gap-12 text-sm font-bold uppercase tracking-[0.3em]">
+        <a href="#music" class="hover:text-primary transition-all">Musique</a>
+        <a href="#about" class="hover:text-primary transition-all">Bio</a>
+        <a href="#contact" class="hover:text-primary transition-all">Contact</a>
+      </div>
+
+      <button id="hamburger" class="md:hidden text-white" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+      </button>
+    </nav>
+  </header>
+
+  <div id="mobileMenu" class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl hidden flex flex-col items-center justify-center gap-12 text-4xl font-display">
+    <button id="closeMenu" class="absolute top-10 right-10 text-6xl">&times;</button>
+    <a href="#music" class="hover:text-primary">Musique</a>
+    <a href="#about" class="hover:text-primary">Bio</a>
+    <a href="#contact" class="hover:text-primary">Contact</a>
+  </div>
+
+  <section id="hero" class="relative h-screen flex items-center justify-center overflow-hidden">
+    <div class="relative z-10 text-center px-6">
+      <h1 class="text-7xl md:text-[12rem] font-display font-bold uppercase leading-none mb-4 drop-shadow-[0_0_30px_rgba(255,69,0,0.3)]">KDB</h1>
+      <p class="text-lg md:text-2xl font-light tracking-[0.5em] text-white/60 uppercase">Electronic Sound Architect</p>
+      <div class="mt-12 flex flex-col md:flex-row gap-6 justify-center items-center">
+        <a href="#music" class="px-12 py-4 bg-primary text-white font-black rounded-full hover:scale-110 hover:shadow-[0_0_40px_rgba(255,69,0,0.5)] transition-all duration-300">ÉCOUTER</a>
+        <a href="https://www.instagram.com/jo_hegi/" target="_blank" class="text-white/40 hover:text-white transition-colors tracking-widest text-sm border-b border-white/10 pb-1">INSTAGRAM @JO_HEGI</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="music" class="py-32 max-w-7xl mx-auto px-6 relative z-10">
+    <h2 class="text-4xl md:text-6xl font-display font-bold mb-20 border-l-8 border-primary pl-8 uppercase">Dernières Sorties</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div class="music-card group">
+        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/3IKatiK62lDIKTqZK5l7Sv?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        <div class="p-6">
+          <h3 class="text-2xl font-bold group-hover:text-primary transition-colors">Digital Emotion</h3>
+          <p class="text-white/40 uppercase tracking-widest text-sm mt-1">Single • 2026</p>
+        </div>
+      </div>
+
+      <div class="music-card group">
+        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/1NC0W7a8PRhAkuQxU15Bt1?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        <div class="p-6">
+          <h3 class="text-2xl font-bold group-hover:text-primary transition-colors">Atmosphere .EXE</h3>
+          <p class="text-white/40 uppercase tracking-widest text-sm mt-1">EP • 2026</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="py-32 bg-white/[0.02] border-y border-white/5 relative z-10">
+    <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
+      <div class="relative group">
+        <div class="absolute -inset-1 bg-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+        <div class="aspect-[4/5] bg-neutral-900 rounded-2xl overflow-hidden border border-white/10 relative">
+          <img src="bio-photo.jpg" alt="Portrait KDB" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000 scale-105 hover:scale-100">
+        </div>
+      </div>
+      <div>
+        <h2 class="text-5xl font-display font-bold mb-8 uppercase text-primary">L'Artiste</h2>
+        <p class="text-xl md:text-2xl leading-relaxed font-light text-white/80 mb-12 italic">
+          "Jeune artiste valaisan, je cherche à transformer les émotions négatives de la vie en force et à apaiser le cœur de mes auditeurs."
+        </p>
+        <div class="grid grid-cols-2 gap-10">
+          <div class="border-l-2 border-white/10 pl-6">
+            <div class="text-5xl font-black text-white">5</div>
+            <div class="text-xs uppercase tracking-[0.3em] text-primary mt-2">EP Sortis</div>
+          </div>
+          <div class="border-l-2 border-white/10 pl-6">
+            <div class="text-5xl font-black text-white">20</div>
+            <div class="text-xs uppercase tracking-[0.3em] text-primary mt-2">Tracks</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="py-32 max-w-4xl mx-auto px-6 text-center relative z-10">
+    <h2 class="text-5xl font-display font-bold mb-16 uppercase">Get In Touch</h2>
+    
+    <div class="flex justify-center gap-6 mb-20">
+      <a href="https://www.instagram.com/jo_hegi/" target="_blank" class="social-link">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+      </a>
+      <div style="display: flex; align-items: center; justify-content: center;">
+        <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/artist/1NC0W7a8PRhAkuQxU15Bt1?utm_source=generator" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
+    </div>
+
+    <form id="contactForm" class="space-y-6 bg-white/[0.03] p-8 md:p-12 rounded-3xl border border-white/5">
+      <div class="grid md:grid-cols-2 gap-6">
+        <input type="text" placeholder="Nom" required class="contact-input">
+        <input type="email" placeholder="Email" required class="contact-input">
+      </div>
+      <textarea placeholder="Votre projet / Message" rows="6" required class="contact-input"></textarea>
+      <button type="submit" class="w-full bg-primary py-5 font-black uppercase tracking-widest rounded-2xl hover:bg-orange-600 transition-all shadow-lg shadow-primary/20">Lancer la connexion</button>
+    </form>
+  </section>
+
+  <footer class="py-20 border-t border-white/5 text-center">
+    <p class="text-white/20 text-xs uppercase tracking-[0.5em]">© 2026 KDB RECORDS • Valais, Suisse</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
