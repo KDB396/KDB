@@ -1,148 +1,298 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KDB | Official Artist Site</title>
-    
+    <title>KDB | Electronic Sound Architect — Valais, Suisse</title>
+    <meta name="description" content="KDB — Artiste électronique valaisan. Découvrez les dernières sorties, EPs et singles sur Spotify. Musique qui transforme les émotions en ondes sonores.">
+    <meta name="keywords" content="KDB, KDB.EXE, musique électronique, artiste suisse, Valais, Spotify, producteur, electronic music">
+    <meta name="author" content="KDB">
+    <meta name="theme-color" content="#ff4500">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="KDB | Electronic Sound Architect">
+    <meta property="og:description" content="Artiste électronique valaisan — Découvrez les dernières sorties sur Spotify.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kdb-music.com">
+    <meta property="og:image" content="bio-photo.jpg">
+    <meta property="og:locale" content="fr_CH">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="KDB | Electronic Sound Architect">
+    <meta name="twitter:description" content="Artiste électronique valaisan — Écoutez sur Spotify.">
+    <meta name="twitter:image" content="bio-photo.jpg">
+
+    <link rel="canonical" href="https://kdb-music.com">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Rubik+Glitch&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: { primary: '#ff4500', dark: '#0a0a0a' },
-            fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Rubik Glitch', 'sans-serif'] },
-          }
-        }
-      }
-    </script>
 </head>
-<body class="antialiased bg-[#0a0a0a] text-white selection:bg-primary selection:text-white">
+<body>
 
-  <div id="loader">
-    <div class="text-6xl md:text-8xl font-display text-primary animate-pulse">KDB.EXE</div>
-  </div>
-
-  <div class="sidebar-container sidebar-left"><div class="sidebar-text">KDB.EXE</div></div>
-  <div class="sidebar-container sidebar-right"><div class="sidebar-text">KDB.EXE</div></div>
-
-  <video id="bgVideo" autoplay muted loop playsinline class="fixed inset-0 w-full h-full object-cover opacity-30 z-0"></video>
-
-  <header class="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-white/5 bg-black/40">
-    <nav class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-      <div class="text-3xl font-display font-bold tracking-tighter text-primary">KDB</div>
-      
-      <div class="hidden md:flex gap-12 text-sm font-bold uppercase tracking-[0.3em]">
-        <a href="#music" class="hover:text-primary transition-all">Musique</a>
-        <a href="#about" class="hover:text-primary transition-all">Bio</a>
-        <a href="#contact" class="hover:text-primary transition-all">Contact</a>
-      </div>
-
-      <button id="hamburger" class="md:hidden text-white" aria-label="Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-      </button>
-    </nav>
-  </header>
-
-  <div id="mobileMenu" class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl hidden flex flex-col items-center justify-center gap-12 text-4xl font-display">
-    <button id="closeMenu" class="absolute top-10 right-10 text-6xl">&times;</button>
-    <a href="#music" class="hover:text-primary">Musique</a>
-    <a href="#about" class="hover:text-primary">Bio</a>
-    <a href="#contact" class="hover:text-primary">Contact</a>
-  </div>
-
-  <section id="hero" class="relative h-screen flex items-center justify-center overflow-hidden">
-    <div class="relative z-10 text-center px-6">
-      <h1 class="text-7xl md:text-[12rem] font-display font-bold uppercase leading-none mb-4 drop-shadow-[0_0_30px_rgba(255,69,0,0.3)]">KDB</h1>
-      <p class="text-lg md:text-2xl font-light tracking-[0.5em] text-white/60 uppercase">Electronic Sound Architect</p>
-      <div class="mt-12 flex flex-col md:flex-row gap-6 justify-center items-center">
-        <a href="#music" class="px-12 py-4 bg-primary text-white font-black rounded-full hover:scale-110 hover:shadow-[0_0_40px_rgba(255,69,0,0.5)] transition-all duration-300">ÉCOUTER</a>
-        <a href="https://www.instagram.com/jo_hegi/" target="_blank" class="text-white/40 hover:text-white transition-colors tracking-widest text-sm border-b border-white/10 pb-1">INSTAGRAM @JO_HEGI</a>
-      </div>
-    </div>
-  </section>
-
-  <section id="music" class="py-32 max-w-7xl mx-auto px-6 relative z-10">
-    <h2 class="text-4xl md:text-6xl font-display font-bold mb-20 border-l-8 border-primary pl-8 uppercase">Dernières Sorties</h2>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-      <div class="music-card group">
-        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/3IKatiK62lDIKTqZK5l7Sv?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        <div class="p-6">
-          <h3 class="text-2xl font-bold group-hover:text-primary transition-colors">Digital Emotion</h3>
-          <p class="text-white/40 uppercase tracking-widest text-sm mt-1">Single • 2026</p>
+    <!-- Loader -->
+    <div id="loader" aria-hidden="true">
+        <div class="loader-inner">
+            <div class="loader-brand">KDB</div>
+            <div class="loader-bar"><div class="loader-fill"></div></div>
         </div>
-      </div>
-
-      <div class="music-card group">
-        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/1NC0W7a8PRhAkuQxU15Bt1?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        <div class="p-6">
-          <h3 class="text-2xl font-bold group-hover:text-primary transition-colors">Atmosphere .EXE</h3>
-          <p class="text-white/40 uppercase tracking-widest text-sm mt-1">EP • 2026</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="about" class="py-32 bg-white/[0.02] border-y border-white/5 relative z-10">
-    <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
-      <div class="relative group">
-        <div class="absolute -inset-1 bg-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-        <div class="aspect-[4/5] bg-neutral-900 rounded-2xl overflow-hidden border border-white/10 relative">
-          <img src="bio-photo.jpg" alt="Portrait KDB" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000 scale-105 hover:scale-100">
-        </div>
-      </div>
-      <div>
-        <h2 class="text-5xl font-display font-bold mb-8 uppercase text-primary">L'Artiste</h2>
-        <p class="text-xl md:text-2xl leading-relaxed font-light text-white/80 mb-12 italic">
-          "Jeune artiste valaisan, je cherche à transformer les émotions négatives de la vie en force et à apaiser le cœur de mes auditeurs."
-        </p>
-        <div class="grid grid-cols-2 gap-10">
-          <div class="border-l-2 border-white/10 pl-6">
-            <div class="text-5xl font-black text-white">5</div>
-            <div class="text-xs uppercase tracking-[0.3em] text-primary mt-2">EP Sortis</div>
-          </div>
-          <div class="border-l-2 border-white/10 pl-6">
-            <div class="text-5xl font-black text-white">20</div>
-            <div class="text-xs uppercase tracking-[0.3em] text-primary mt-2">Tracks</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="contact" class="py-32 max-w-4xl mx-auto px-6 text-center relative z-10">
-    <h2 class="text-5xl font-display font-bold mb-16 uppercase">Get In Touch</h2>
-    
-    <div class="flex justify-center gap-6 mb-20">
-      <a href="https://www.instagram.com/jo_hegi/" target="_blank" class="social-link">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-      </a>
-      <div style="display: flex; align-items: center; justify-content: center;">
-        <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/artist/1NC0W7a8PRhAkuQxU15Bt1?utm_source=generator" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-      </div>
     </div>
 
-    <form id="contactForm" class="space-y-6 bg-white/[0.03] p-8 md:p-12 rounded-3xl border border-white/5">
-      <div class="grid md:grid-cols-2 gap-6">
-        <input type="text" placeholder="Nom" required class="contact-input">
-        <input type="email" placeholder="Email" required class="contact-input">
-      </div>
-      <textarea placeholder="Votre projet / Message" rows="6" required class="contact-input"></textarea>
-      <button type="submit" class="w-full bg-primary py-5 font-black uppercase tracking-widest rounded-2xl hover:bg-orange-600 transition-all shadow-lg shadow-primary/20">Lancer la connexion</button>
-    </form>
-  </section>
+    <!-- Grain overlay -->
+    <div class="grain" aria-hidden="true"></div>
 
-  <footer class="py-20 border-t border-white/5 text-center">
-    <p class="text-white/20 text-xs uppercase tracking-[0.5em]">© 2026 KDB RECORDS • Valais, Suisse</p>
-  </footer>
+    <!-- Cursor follower (desktop only) -->
+    <div id="cursor" class="cursor-dot" aria-hidden="true"></div>
+    <div id="cursorTrail" class="cursor-trail" aria-hidden="true"></div>
 
-  <script src="script.js"></script>
+    <!-- Navigation -->
+    <header id="nav" role="banner">
+        <nav class="nav-inner" aria-label="Navigation principale">
+            <a href="#hero" class="nav-logo" aria-label="KDB — Retour à l'accueil">
+                <span class="logo-text">KDB</span>
+                <span class="logo-dot">.EXE</span>
+            </a>
+
+            <div class="nav-links" role="list">
+                <a href="#music" class="nav-link" role="listitem">
+                    <span class="nav-link-index">01</span>
+                    <span class="nav-link-label">Musique</span>
+                </a>
+                <a href="#about" class="nav-link" role="listitem">
+                    <span class="nav-link-index">02</span>
+                    <span class="nav-link-label">Bio</span>
+                </a>
+                <a href="#contact" class="nav-link" role="listitem">
+                    <span class="nav-link-index">03</span>
+                    <span class="nav-link-label">Contact</span>
+                </a>
+            </div>
+
+            <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+                <span class="menu-bar"></span>
+                <span class="menu-bar"></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu" role="dialog" aria-label="Menu mobile" aria-hidden="true">
+        <div class="mobile-menu-bg"></div>
+        <div class="mobile-menu-content">
+            <a href="#music" class="mobile-link" tabindex="-1">
+                <span class="mobile-link-index">01</span>
+                <span class="mobile-link-text">Musique</span>
+            </a>
+            <a href="#about" class="mobile-link" tabindex="-1">
+                <span class="mobile-link-index">02</span>
+                <span class="mobile-link-text">Bio</span>
+            </a>
+            <a href="#contact" class="mobile-link" tabindex="-1">
+                <span class="mobile-link-index">03</span>
+                <span class="mobile-link-text">Contact</span>
+            </a>
+            <div class="mobile-footer">
+                <a href="https://www.instagram.com/jo_hegi/" target="_blank" rel="noopener noreferrer" class="mobile-social" tabindex="-1">@JO_HEGI</a>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <!-- Hero -->
+        <section id="hero" class="hero" aria-label="Accueil">
+            <!-- Background Video -->
+            <div class="hero-video-wrap" aria-hidden="true">
+                <video id="heroVideo" class="hero-video" autoplay muted loop playsinline></video>
+                <div class="hero-video-overlay"></div>
+                <div class="hero-video-glitch"></div>
+                <div class="hero-video-scanlines"></div>
+                <div class="hero-video-vignette"></div>
+            </div>
+            <div class="hero-bg-grid" aria-hidden="true"></div>
+
+            <div id="heroTilt" class="hero-tilt">
+            <div class="hero-content">
+                <div class="hero-tag">
+                    <span class="hero-tag-dot"></span>
+                    <span>Electronic Sound Architect</span>
+                </div>
+
+                <h1 class="hero-title">
+                    <span class="hero-title-line" data-reveal>K</span>
+                    <span class="hero-title-line" data-reveal>D</span>
+                    <span class="hero-title-line" data-reveal>B</span>
+                </h1>
+
+                <p class="hero-sub">Valais, Suisse</p>
+
+                <div class="hero-actions">
+                    <a href="#music" class="btn-primary">
+                        <span class="btn-text">Écouter</span>
+                        <span class="btn-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        </span>
+                    </a>
+                    <a href="https://open.spotify.com/artist/1NC0W7a8PRhAkuQxU15Bt1" target="_blank" rel="noopener noreferrer" class="btn-ghost">
+                        <span>Spotify</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"></path></svg>
+                    </a>
+                </div>
+            </div>
+            </div>
+
+            <div class="hero-scroll" aria-hidden="true">
+                <div class="scroll-line"></div>
+                <span>Scroll</span>
+            </div>
+        </section>
+
+        <!-- Glitch Divider: Hero → Music -->
+        <div class="glitch-divider" aria-hidden="true"><div class="glitch-divider-inner"></div></div>
+
+        <!-- Music -->
+        <section id="music" class="section" aria-label="Musique">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-index">01</span>
+                    <h2 class="section-title">Dernières<br>Sorties</h2>
+                    <p class="section-desc">Plongez dans l'univers sonore de KDB — entre beats atmosphériques et émotions digitales.</p>
+                </div>
+
+                <div class="music-grid">
+                    <article class="release-card" data-scroll>
+                        <div class="release-embed">
+                            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/3IKatiK62lDIKTqZK5l7Sv?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Digital Emotion sur Spotify"></iframe>
+                        </div>
+                        <div class="release-info">
+                            <span class="release-year">2026</span>
+                            <h3 class="release-name">Digital Emotion</h3>
+                            <span class="release-type">Single</span>
+                        </div>
+                    </article>
+
+                    <article class="release-card" data-scroll>
+                        <div class="release-embed">
+                            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/1NC0W7a8PRhAkuQxU15Bt1?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Profil KDB sur Spotify"></iframe>
+                        </div>
+                        <div class="release-info">
+                            <span class="release-year">2026</span>
+                            <h3 class="release-name">Atmosphere .EXE</h3>
+                            <span class="release-type">EP</span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Glitch Divider: Music → About -->
+        <div class="glitch-divider" aria-hidden="true"><div class="glitch-divider-inner"></div></div>
+
+        <!-- About -->
+        <section id="about" class="section section--about" aria-label="Biographie">
+            <!-- Lightning Canvas -->
+            <canvas id="lightningCanvas" class="lightning-canvas" aria-hidden="true"></canvas>
+            <div class="section-container">
+                <div class="about-layout">
+                    <div class="about-image-wrap" data-scroll>
+                        <div class="about-image-frame">
+                            <img src="bio-photo.jpg" alt="Portrait de KDB, artiste électronique valaisan" class="about-image" loading="lazy" width="600" height="750">
+                            <div class="about-image-overlay"></div>
+                        </div>
+                        <div class="about-image-tag">Valais, CH</div>
+                    </div>
+
+                    <div class="about-content" data-scroll>
+                        <span class="section-index">02</span>
+                        <h2 class="section-title">L'Artiste</h2>
+
+                        <blockquote class="about-quote">
+                            <p>"Jeune artiste valaisan, je cherche à transformer les émotions négatives de la vie en force et à apaiser le cœur de mes auditeurs."</p>
+                        </blockquote>
+
+                        <div class="about-stats">
+                            <div class="stat">
+                                <span class="stat-number" data-count="5">0</span>
+                                <span class="stat-label">EPs Sortis</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number" data-count="20">0</span>
+                                <span class="stat-label">Tracks</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number" data-count="2026">0</span>
+                                <span class="stat-label">Actif depuis</span>
+                            </div>
+                        </div>
+
+                        <a href="https://open.spotify.com/artist/1NC0W7a8PRhAkuQxU15Bt1" target="_blank" rel="noopener noreferrer" class="btn-primary btn-primary--outline">
+                            <span class="btn-text">Discographie complète</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Glitch Divider: About → Contact -->
+        <div class="glitch-divider" aria-hidden="true"><div class="glitch-divider-inner"></div></div>
+
+        <!-- Contact -->
+        <section id="contact" class="section section--contact" aria-label="Contact">
+            <div class="section-container">
+                <div class="contact-layout">
+                    <div class="contact-header" data-scroll>
+                        <span class="section-index">03</span>
+                        <h2 class="section-title">Get In<br>Touch</h2>
+                        <p class="section-desc">Un projet, une collab, un booking ? Contacte KDB directement via Instagram.</p>
+                    </div>
+
+                    <div class="contact-content" data-scroll>
+                        <a href="https://ig.me/m/jo_hegi" target="_blank" rel="noopener noreferrer" class="contact-cta">
+                            <div class="contact-cta-inner">
+                                <div class="contact-cta-icon">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                </div>
+                                <div class="contact-cta-text">
+                                    <span class="contact-cta-label">Envoyer un message</span>
+                                    <span class="contact-cta-handle">@jo_hegi</span>
+                                </div>
+                                <div class="contact-cta-arrow">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </a>
+
+                        <div class="contact-links">
+                            <a href="https://open.spotify.com/artist/1NC0W7a8PRhAkuQxU15Bt1" target="_blank" rel="noopener noreferrer" class="contact-link-item">
+                                <span class="contact-link-name">Spotify</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"></path></svg>
+                            </a>
+                            <a href="https://www.instagram.com/jo_hegi/" target="_blank" rel="noopener noreferrer" class="contact-link-item">
+                                <span class="contact-link-name">Instagram</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"></path></svg>
+                            </a>
+                        </div>
+
+                        <div class="contact-embed">
+                            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/1NC0W7a8PRhAkuQxU15Bt1?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Écouter KDB sur Spotify"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-inner">
+            <span class="footer-brand">KDB.EXE</span>
+            <span class="footer-copy">© 2026 KDB Records — Valais, Suisse</span>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
