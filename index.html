@@ -33,6 +33,8 @@
 </head>
 <body>
 
+    <a href="#main-content" class="skip-link">Aller au contenu</a>
+
     <!-- Loader -->
     <div id="loader" aria-hidden="true">
         <div class="loader-inner">
@@ -56,22 +58,22 @@
                 <span class="logo-dot">.EXE</span>
             </a>
 
-            <div class="nav-links" role="list">
-                <a href="#music" class="nav-link" role="listitem">
+            <ul class="nav-links">
+                <li><a href="#music" class="nav-link">
                     <span class="nav-link-index">01</span>
                     <span class="nav-link-label">Musique</span>
-                </a>
-                <a href="#about" class="nav-link" role="listitem">
+                </a></li>
+                <li><a href="#about" class="nav-link">
                     <span class="nav-link-index">02</span>
                     <span class="nav-link-label">Bio</span>
-                </a>
-                <a href="#contact" class="nav-link" role="listitem">
+                </a></li>
+                <li><a href="#contact" class="nav-link">
                     <span class="nav-link-index">03</span>
                     <span class="nav-link-label">Contact</span>
-                </a>
-            </div>
+                </a></li>
+            </ul>
 
-            <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+            <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobileMenu">
                 <span class="menu-bar"></span>
                 <span class="menu-bar"></span>
             </button>
@@ -79,7 +81,7 @@
     </header>
 
     <!-- Mobile Menu -->
-    <div id="mobileMenu" class="mobile-menu" role="dialog" aria-label="Menu mobile" aria-hidden="true">
+    <div id="mobileMenu" class="mobile-menu" role="dialog" aria-label="Menu mobile" aria-modal="true" aria-hidden="true">
         <div class="mobile-menu-bg"></div>
         <div class="mobile-menu-content">
             <a href="#music" class="mobile-link" tabindex="-1">
@@ -100,7 +102,7 @@
         </div>
     </div>
 
-    <main>
+    <main id="main-content">
         <!-- Hero -->
         <section id="hero" class="hero" aria-label="Accueil">
             <!-- Background Video -->
@@ -245,8 +247,8 @@
                 <div class="contact-layout">
                     <div class="contact-header" data-scroll>
                         <span class="section-index">03</span>
-                        <h2 class="section-title">Get In<br>Touch</h2>
-                        <p class="section-desc">Un projet, une collab, un booking ? Contacte KDB directement via Instagram.</p>
+                        <h2 class="section-title">Prendre<br>Contact</h2>
+                        <p class="section-desc">Un projet, une collab, un booking ? Contactez KDB directement via Instagram.</p>
                     </div>
 
                     <div class="contact-content" data-scroll>

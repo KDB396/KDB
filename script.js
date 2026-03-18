@@ -229,7 +229,15 @@ document.addEventListener('DOMContentLoaded', () => {
             requestAnimationFrame(animate);
         }
 
+        function clearLightningTimer() {
+            if (lightningTimeout) {
+                clearTimeout(lightningTimeout);
+                lightningTimeout = null;
+            }
+        }
+
         function scheduleLightning() {
+            clearLightningTimer();
             const delay = 1500 + Math.random() * 4000;
             lightningTimeout = setTimeout(triggerLightning, delay);
         }
@@ -240,9 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 isVisible = entry.isIntersecting;
                 if (isVisible) {
                     resizeCanvas();
-                    scheduleLightning();
+                    if (!lightningTimeout) {
+                        scheduleLightning();
+                    }
                 } else {
-                    clearTimeout(lightningTimeout);
+                    clearLightningTimer();
                     ctx.clearRect(0, 0, canvasW, canvasH);
                 }
             });
@@ -299,22 +309,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuToggle = document.getElementById('menuToggle');
     const mobileMenu = document.getElementById('mobileMenu');
     const mobileLinks = mobileMenu?.querySelectorAll('.mobile-link, .mobile-social');
+    const mobileMenuBackdrop = mobileMenu?.querySelector('.mobile-menu-bg');
     let menuOpen = false;
+    let lastFocusedElement = null;
+
+    const getFocusableElements = () => {
+        if (!mobileMenu) return [];
+        return [...mobileMenu.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+    };
 
     const toggleMenu = (open) => {
         menuOpen = open;
+
+        if (open) {
+            lastFocusedElement = document.activeElement;
+        }
+
         menuToggle?.classList.toggle('active', open);
         mobileMenu?.classList.toggle('open', open);
         mobileMenu?.setAttribute('aria-hidden', !open);
         menuToggle?.setAttribute('aria-expanded', open);
+        menuToggle?.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
         document.body.style.overflow = open ? 'hidden' : '';
         mobileLinks?.forEach(link => { link.tabIndex = open ? 0 : -1; });
+
+        if (open) {
+            const [firstFocusable] = getFocusableElements();
+            firstFocusable?.focus();
+        } else if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+            lastFocusedElement.focus();
+        }
     };
 
     menuToggle?.addEventListener('click', () => toggleMenu(!menuOpen));
+    mobileMenuBackdrop?.addEventListener('click', () => toggleMenu(false));
     mobileLinks?.forEach(link => link.addEventListener('click', () => toggleMenu(false)));
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && menuOpen) toggleMenu(false);
+
+        if (e.key === 'Tab' && menuOpen) {
+            const focusable = getFocusableElements();
+            if (!focusable.length) return;
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            const active = document.activeElement;
+
+            if (e.shiftKey && active === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && active === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
     });
 
     // ══════════════════════════════════════
@@ -396,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const offset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 80;
                 const top = target.getBoundingClientRect().top + window.scrollY - offset;
-                window.scrollTo({ top, behavior: 'smooth' });
+                window.scrollTo({ top, behavior: prefersReduced ? 'auto' : 'smooth' });
             }
         });
     });
