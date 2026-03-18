@@ -289,9 +289,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ══════════════════════════════════════
     const nav = document.getElementById('nav');
     let lastScroll = 0;
+    const heroTitle = document.querySelector('.hero-title');
+    const heroTag = document.querySelector('.hero-tag');
+    let scrollTicking = false;
 
-    const handleNavScroll = () => {
+    const updateOnScroll = () => {
         const current = window.scrollY;
+
         nav?.classList.toggle('scrolled', current > 80);
         if (current > lastScroll && current > 200) {
             nav?.classList.add('nav-hidden');
@@ -299,9 +303,24 @@ document.addEventListener('DOMContentLoaded', () => {
             nav?.classList.remove('nav-hidden');
         }
         lastScroll = current;
+
+        if (!isTouch && current < window.innerHeight) {
+            if (heroTitle) heroTitle.style.transform = `translateY(${current * 0.3}px)`;
+            if (heroTag) heroTag.style.opacity = Math.max(0, 1 - current / 400);
+        }
     };
 
-    window.addEventListener('scroll', handleNavScroll, { passive: true });
+    const handleScroll = () => {
+        if (scrollTicking) return;
+        scrollTicking = true;
+        requestAnimationFrame(() => {
+            updateOnScroll();
+            scrollTicking = false;
+        });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    updateOnScroll();
 
     // ══════════════════════════════════════
     //  MOBILE MENU
@@ -408,27 +427,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroVideo = document.getElementById('heroVideo');
     if (heroVideo) {
         const clips = ['clip1.mp4', 'clip2.mp4', 'clip3.mp4'];
+        let availableClips = [...clips];
         let currentIndex = -1;
 
         const pickClip = () => {
+            if (!availableClips.length) return null;
             let next;
-            do { next = Math.floor(Math.random() * clips.length); }
-            while (next === currentIndex && clips.length > 1);
+            do { next = Math.floor(Math.random() * availableClips.length); }
+            while (next === currentIndex && availableClips.length > 1);
             currentIndex = next;
-            return clips[currentIndex];
+            return availableClips[currentIndex];
         };
 
-        heroVideo.src = pickClip();
-        heroVideo.load();
+        const setClip = (playVideo) => {
+            const clip = pickClip();
+            if (!clip) {
+                heroVideo.classList.add('hero-video--hidden');
+                return;
+            }
+
+            heroVideo.src = clip;
+            heroVideo.load();
+            if (playVideo) {
+                heroVideo.play().catch(() => {});
+            }
+        };
+
+        if (prefersReduced) {
+            heroVideo.removeAttribute('autoplay');
+            heroVideo.removeAttribute('loop');
+            setClip(false);
+        } else {
+            setClip(true);
+        }
+
         heroVideo.removeAttribute('loop');
 
+        heroVideo.addEventListener('error', () => {
+            if (currentIndex >= 0 && currentIndex < availableClips.length) {
+                availableClips.splice(currentIndex, 1);
+                currentIndex = -1;
+            }
+
+            if (availableClips.length) {
+                setClip(!prefersReduced);
+            } else {
+                heroVideo.classList.add('hero-video--hidden');
+            }
+        });
+
         heroVideo.addEventListener('ended', () => {
+            if (prefersReduced) return;
             heroVideo.style.transition = 'opacity 0.8s ease';
             heroVideo.style.opacity = '0';
             setTimeout(() => {
-                heroVideo.src = pickClip();
-                heroVideo.load();
-                heroVideo.play().catch(() => {});
+                setClip(true);
                 setTimeout(() => { heroVideo.style.opacity = '1'; }, 100);
             }, 800);
         });
@@ -449,19 +502,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ══════════════════════════════════════
-    //  PARALLAX (desktop)
-    // ══════════════════════════════════════
-    if (!isTouch) {
-        const heroTitle = document.querySelector('.hero-title');
-        const heroTag = document.querySelector('.hero-tag');
-
-        window.addEventListener('scroll', () => {
-            const scroll = window.scrollY;
-            if (scroll < window.innerHeight) {
-                if (heroTitle) heroTitle.style.transform = `translateY(${scroll * 0.3}px)`;
-                if (heroTag) heroTag.style.opacity = Math.max(0, 1 - scroll / 400);
-            }
-        }, { passive: true });
-    }
 });

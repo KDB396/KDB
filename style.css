@@ -424,6 +424,10 @@ button { background: none; border: none; color: inherit; cursor: pointer; font: 
     transform: scale(1.05);
 }
 
+.hero-video--hidden {
+    opacity: 0;
+}
+
 /* Dark gradient overlay */
 .hero-video-overlay {
     position: absolute;
@@ -760,6 +764,8 @@ button { background: none; border: none; color: inherit; cursor: pointer; font: 
 .section {
     padding: var(--section-pad) 0;
     position: relative;
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 900px;
 }
 
 .section-container {
