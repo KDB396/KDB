@@ -16,6 +16,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const isTouch = matchMedia('(hover: none)').matches;
     const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // ── Spotify embeds — load on demand (saves network until user opts in) ──
+    document.querySelectorAll('.spotify-lazy').forEach(mount => {
+        const src = mount.dataset.spotifySrc;
+        const height = mount.dataset.spotifyHeight || '352';
+        const title = mount.dataset.spotifyTitle || 'Spotify';
+        if (!src) return;
+
+        const facade = document.createElement('button');
+        facade.type = 'button';
+        facade.className = 'spotify-facade' +
+            (mount.classList.contains('spotify-lazy--compact') ? ' spotify-facade--compact' : '');
+        facade.setAttribute('aria-label', `Charger le lecteur Spotify — ${title}`);
+
+        facade.innerHTML = `
+            <span class="spotify-facade-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </span>
+            <span class="spotify-facade-text">
+                <span class="spotify-facade-label">Spotify</span>
+                <span class="spotify-facade-hint">Charger le lecteur</span>
+            </span>
+        `;
+
+        const activate = () => {
+            const iframe = document.createElement('iframe');
+            iframe.src = src;
+            iframe.width = '100%';
+            iframe.height = height;
+            iframe.style.borderRadius = '12px';
+            iframe.loading = 'lazy';
+            iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('title', title);
+            iframe.setAttribute('allowfullscreen', '');
+            iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
+            mount.replaceChildren(iframe);
+        };
+
+        facade.addEventListener('click', activate);
+        mount.appendChild(facade);
+    });
+
     // ── Custom Cursor (desktop only) ──
     if (!isTouch) {
         const cursor = document.getElementById('cursor');
