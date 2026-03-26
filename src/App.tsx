@@ -14,6 +14,8 @@ import {
 import type { ReactNode } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import {
+  AdaptiveDpr,
+  AdaptiveEvents,
   ContactShadows,
   Center,
   Environment,
@@ -106,7 +108,7 @@ function useCompactViewport(): boolean {
 function GlitchNavLogo(): ReactElement {
   return (
     <span
-      className="relative inline-block select-none font-bold tracking-[-0.05em] text-3xl sm:text-4xl md:text-[2.65rem]"
+      className="relative inline-block select-none font-bold tracking-[-0.05em] text-2xl sm:text-3xl md:text-[2.65rem]"
       aria-hidden
     >
       <span className="absolute inset-0 translate-x-[1px] text-[#00ff9d]/40 blur-[0.5px] drop-shadow-[0_0_18px_rgba(0,255,157,0.55)] motion-safe:animate-pulse">
@@ -132,13 +134,13 @@ function GlitchNavLogo(): ReactElement {
 function GlitchHeading({ children }: { children: string }): ReactElement {
   return (
     <h1 className="relative text-center">
-      <span className="pointer-events-none absolute inset-0 translate-x-[3px] text-[#00ff9d]/25 blur-[1px] sm:translate-x-[4px]">
+      <span className="pointer-events-none absolute inset-0 translate-x-[2px] text-[#00ff9d]/25 blur-[1px] sm:translate-x-[3px]">
         {children}
       </span>
-      <span className="pointer-events-none absolute inset-0 -translate-x-[3px] text-[#ff2ea6]/20 blur-[0.5px] sm:-translate-x-[4px]">
+      <span className="pointer-events-none absolute inset-0 -translate-x-[2px] text-[#ff2ea6]/20 blur-[0.5px] sm:-translate-x-[3px]">
         {children}
       </span>
-      <span className="relative bg-gradient-to-b from-white via-neutral-200 to-neutral-500 bg-clip-text text-5xl font-black tracking-[0.28em] text-transparent drop-shadow-[0_0_20px_rgba(0,255,157,0.35)] sm:text-6xl md:text-7xl">
+      <span className="relative bg-gradient-to-b from-white via-neutral-200 to-neutral-500 bg-clip-text text-4xl font-black tracking-[0.15em] text-transparent drop-shadow-[0_0_20px_rgba(0,255,157,0.35)] sm:text-5xl sm:tracking-[0.28em] md:text-6xl lg:text-7xl">
         {children}
       </span>
     </h1>
@@ -413,7 +415,7 @@ function HeroLogo3DBlock(): ReactElement {
         powerPreference: compact ? 'default' : 'high-performance',
         stencil: false,
       }}
-      dpr={compact ? 1 : [1, 2]}
+      dpr={compact ? [1, 1.5] : [1, 2]}
       camera={{
         // Caméra un poil plus reculée/large pour éviter le crop du haut
         position: [0, compact ? 0.6 : 0.68, compact ? 5.15 : 4.45],
@@ -421,6 +423,8 @@ function HeroLogo3DBlock(): ReactElement {
       }}
     >
       <Suspense fallback={null}>
+        <AdaptiveDpr pixelated />
+        <AdaptiveEvents />
         <HeroLogoWorld
           hovered={hovered}
           onHoverChange={setHovered}
@@ -572,7 +576,7 @@ function HomePage(): ReactElement {
   }, [currentSrc, pickRandomClip, showA])
 
   return (
-    <main className="min-h-screen bg-[#060606] pb-24 pt-20 text-neutral-200 sm:pb-28">
+    <main className="min-h-screen overflow-x-hidden bg-[#060606] pb-24 pt-20 text-neutral-200 sm:pb-28">
       {/* Hero */}
       <section
         className="relative flex min-h-[calc(100svh-5rem)] w-full flex-col items-center justify-start overflow-hidden px-3 pt-4 sm:px-6 sm:pt-6 md:px-8 md:pt-8"
@@ -583,7 +587,7 @@ function HomePage(): ReactElement {
 
         {/* Crossfade: 2 vidéos empilées */}
         <video
-          className={`pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.5] transition-opacity ease-out sm:object-center ${
+          className={`pointer-events-none absolute inset-0 h-full w-full max-w-[100vw] object-cover object-center opacity-[0.5] transition-opacity ease-out ${
             showA ? 'opacity-[0.42]' : 'opacity-0'
           }`}
           style={{ transitionDuration: `${HERO_BG_CROSSFADE_MS}ms` }}
@@ -596,7 +600,7 @@ function HomePage(): ReactElement {
           aria-hidden
         />
         <video
-          className={`pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.5] transition-opacity ease-out sm:object-center ${
+          className={`pointer-events-none absolute inset-0 h-full w-full max-w-[100vw] object-cover object-center opacity-[0.5] transition-opacity ease-out ${
             showA ? 'opacity-0' : 'opacity-[0.42]'
           }`}
           style={{ transitionDuration: `${HERO_BG_CROSSFADE_MS}ms` }}
@@ -633,6 +637,9 @@ function HomePage(): ReactElement {
             KDB
           </h2>
           <HeroLogo3DBlock />
+          <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.2em] text-[#00ff9d]/85 sm:text-xs sm:tracking-[0.32em] md:text-base">
+            Rappeur · <br className="sm:hidden" /> Sound Architect
+          </p>
         </div>
       </section>
 
@@ -651,7 +658,7 @@ function HomePage(): ReactElement {
               alt="KDB"
               className="w-64 shrink-0 rounded-2xl shadow-[0_24px_64px_-16px_rgba(0,0,0,0.75),0_0_0_1px_rgba(255,255,255,0.08),0_0_48px_-8px_rgba(0,255,157,0.12)] ring-1 ring-white/[0.08]"
             />
-            <p className="max-w-xl text-pretty text-base font-light leading-[1.75] tracking-wide text-neutral-400 sm:text-lg">
+            <p className="max-w-xl break-words hyphens-auto text-pretty text-base font-light leading-[1.75] tracking-wide text-neutral-400 sm:text-lg">
               KDB est un rappeur et sound architect du Valais. Il mélange rap
               sombre, flows tranchants et textures électroniques pour créer une
               atmosphère unique.
@@ -784,7 +791,7 @@ function KdbCharacter({
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}
     >
-      <primitive object={model} />
+      <primitive object={model} dispose={null} />
     </group>
   )
 }
@@ -923,12 +930,14 @@ function Artbook3DView({
           powerPreference: compact ? 'default' : 'high-performance',
           stencil: false,
         }}
-        dpr={compact ? 1 : [1, 2]}
+        dpr={compact ? [1, 1.5] : [1, 2]}
         camera={{
           position: [0, 0.98, compact ? 5.55 : 4.7],
           fov: compact ? 48 : 44,
         }}
       >
+        <AdaptiveDpr pixelated />
+        <AdaptiveEvents />
         <ArtbookScene
           hovered={hovered}
           onHoverChange={onHoverChange}
@@ -943,7 +952,7 @@ function ArtbookPage(): ReactElement {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <main className="min-h-screen bg-[#050505] pb-8 pt-24 text-neutral-200 sm:pb-10">
+    <main className="min-h-screen overflow-x-hidden bg-[#050505] pb-8 pt-24 text-neutral-200 sm:pb-10">
       <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         <GlitchHeading>ARTBOOK</GlitchHeading>
 
@@ -1038,7 +1047,7 @@ function AppContent(): ReactElement {
   return (
     <>
       <CustomCursor />
-      <div className="min-h-screen min-w-0 bg-[#060606] antialiased selection:bg-[#00ff9d]/30 selection:text-white md:cursor-none">
+      <div className="min-h-screen min-w-0 overflow-x-hidden bg-[#060606] antialiased selection:bg-[#00ff9d]/30 selection:text-white md:cursor-none">
         <Navbar />
         <PageTransition>
           {(displayLocation) => (
