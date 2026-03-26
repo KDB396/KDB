@@ -14,10 +14,12 @@ import {
 import type { ReactNode } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import {
+  ContactShadows,
   Center,
   Environment,
   Html,
   OrbitControls,
+  Sparkles,
   useGLTF,
 } from '@react-three/drei'
 import * as THREE from 'three'
@@ -27,7 +29,9 @@ import {
   Link,
   Route,
   Routes,
+  useLocation,
 } from 'react-router-dom'
+import type { Location } from 'react-router-dom'
 
 // ---------------------------------------------------------------------------
 // Base Vite (ex. GitHub Pages : vite.config base '/KDB/')
@@ -818,6 +822,22 @@ function ArtbookSceneAsync({
     <>
       <Environment preset="city" resolution={compact ? 128 : 256} />
       <KdbCharacter hovered={hovered} onHoverChange={onHoverChange} />
+      <ContactShadows
+        position={[0, -0.6, 0]}
+        opacity={0.75}
+        scale={8}
+        blur={2.5}
+        far={4}
+        color="#001a0f"
+      />
+      <Sparkles
+        count={compact ? 60 : 120}
+        scale={8}
+        size={compact ? 1.5 : 2.5}
+        speed={0.3}
+        opacity={0.25}
+        color="#00ff9d"
+      />
     </>
   )
 }
@@ -838,7 +858,7 @@ function ArtbookScene({
       <hemisphereLight
         color="#ffffff"
         groundColor="#1a1a1a"
-        intensity={0.55}
+        intensity={0.35}
       />
 
       {/* Key (haut / légèrement latéral) */}
@@ -848,7 +868,7 @@ function ArtbookScene({
       <directionalLight position={[-7, 3, 2]} intensity={0.55} color="#c7fff3" />
 
       {/* Rim light (derrière, accent vert) */}
-      <directionalLight position={[-2, 4, -9]} intensity={0.9} color="#00ff9d" />
+      <directionalLight position={[-2, 4, -9]} intensity={2.5} color="#00ff9d" />
 
       {/* Glow doux */}
       <pointLight
@@ -981,17 +1001,62 @@ function CustomCursor(): ReactElement {
   )
 }
 
-export default function App(): ReactElement {
+function PageTransition({
+  children,
+}: {
+  children: (displayLocation: Location) => ReactNode
+}): ReactElement {
+  const location = useLocation()
+  const [displayLocation, setDisplayLocation] = useState(location)
+  const [transitionClass, setTransitionClass] = useState('opacity-100 blur-0')
+
+  useEffect(() => {
+    const hasRouteChanged =
+      location.pathname !== displayLocation.pathname ||
+      location.search !== displayLocation.search ||
+      location.hash !== displayLocation.hash
+
+    if (!hasRouteChanged) return
+
+    setTransitionClass('opacity-0 blur-[4px] scale-[0.98]')
+    const timeoutId = window.setTimeout(() => {
+      setDisplayLocation(location)
+      setTransitionClass('opacity-100 blur-0 scale-100')
+    }, 400)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [location, displayLocation])
+
   return (
-    <BrowserRouter basename={ROUTER_BASENAME}>
+    <div className={`transition-all duration-400 ease-in-out ${transitionClass}`}>
+      {children(displayLocation)}
+    </div>
+  )
+}
+
+function AppContent(): ReactElement {
+  return (
+    <>
       <CustomCursor />
       <div className="min-h-screen min-w-0 bg-[#060606] antialiased selection:bg-[#00ff9d]/30 selection:text-white md:cursor-none">
         <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/artbook" element={<ArtbookPage />} />
-        </Routes>
+        <PageTransition>
+          {(displayLocation) => (
+            <Routes location={displayLocation}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/artbook" element={<ArtbookPage />} />
+            </Routes>
+          )}
+        </PageTransition>
       </div>
+    </>
+  )
+}
+
+export default function App(): ReactElement {
+  return (
+    <BrowserRouter basename={ROUTER_BASENAME}>
+      <AppContent />
     </BrowserRouter>
   )
 }
