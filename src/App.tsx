@@ -54,7 +54,11 @@ const HERO_BG_VIDEO_CLIPS = [
   publicAsset('clips/clip3.mp4'),
 ] as const
 
-const AUTO_ROTATION_SPEED = 0.4
+/** Crossfade entre clips du hero (ms) */
+const HERO_BG_CROSSFADE_MS = 900
+const HERO_BG_SWITCH_MS = 14_000
+
+const AUTO_ROTATION_SPEED = 0.25
 const HOVER_SCALE = 1.08
 const SCALE_LERP = 12
 
@@ -64,6 +68,12 @@ const HERO_LOGO_HOVER_SCALE = 1.05
 const HERO_LOGO_SCALE_LERP = 14
 const HERO_LOGO_MODEL_PATH = publicAsset('models/kdb-logo.glb')
 const KDB_CHARACTER_MODEL_PATH = publicAsset('models/kdb.glb')
+const ACCENT = '#00ff9d'
+
+/** Artbook — ajustements visuels (masque artefacts, look premium) */
+const ARTBOOK_BASE_SCALE = 1.04
+const ARTBOOK_FLOAT_Y = 0.12
+const ARTBOOK_FLOAT_AMPLITUDE = 0.045
 
 const NAV_LINK_CLASS =
   'text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-500 transition-colors duration-300 hover:text-[#00ff9d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00ff9d] sm:text-xs'
@@ -187,6 +197,201 @@ function HeroLogoModel({
   )
 }
 
+function NeonPulse({
+  compact,
+}: {
+  compact: boolean
+}): ReactElement {
+  const keyRef = useRef<THREE.PointLight>(null)
+  const rimRef = useRef<THREE.DirectionalLight>(null)
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime
+    const pulse =
+      0.72 +
+      0.28 * Math.sin(t * 1.25) +
+      0.08 * Math.sin(t * 2.7 + 0.6)
+
+    const key = keyRef.current
+    if (key) key.intensity = (compact ? 0.38 : 0.62) * pulse
+
+    const rim = rimRef.current
+    if (rim) rim.intensity = (compact ? 0.7 : 0.95) * (0.85 + 0.15 * pulse)
+  })
+
+  return (
+    <>
+      <pointLight
+        ref={keyRef}
+        position={[0, 2.8, 6.3]}
+        intensity={compact ? 0.38 : 0.62}
+        color={ACCENT}
+        distance={compact ? 11 : 14}
+        decay={2}
+      />
+      <directionalLight
+        ref={rimRef}
+        position={[-2, 2.5, -7]}
+        intensity={compact ? 0.7 : 0.95}
+        color={ACCENT}
+      />
+    </>
+  )
+}
+
+function LightningCrackle({
+  compact,
+}: {
+  compact: boolean
+}): ReactElement {
+  const lineRef = useRef<THREE.LineSegments>(null)
+  const materialRef = useRef<THREE.LineBasicMaterial>(null)
+  const lifeRef = useRef(0)
+  const nextRef = useRef(0)
+
+  const { geometry } = useMemo(() => {
+    const geometry = new THREE.BufferGeometry()
+    const maxSegments = compact ? 10 : 18
+    const positions = new Float32Array(maxSegments * 2 * 3)
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    geometry.setDrawRange(0, 0)
+    return { geometry, maxSegments, positions }
+  }, [compact])
+
+  useFrame((state) => {
+    const mat = materialRef.current
+    const line = lineRef.current
+    if (!mat || !line) return
+
+    const t = state.clock.elapsedTime
+    if (t >= nextRef.current && lifeRef.current <= 0) {
+      // déclenchement rare, plus rare sur mobile
+      const baseEvery = compact ? 5.8 : 4.2
+      const jitter = compact ? 3.2 : 2.2
+      nextRef.current = t + baseEvery + Math.random() * jitter
+
+      const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute
+      const arr = posAttr.array as Float32Array
+      const segCount = compact ? 4 + Math.floor(Math.random() * 3) : 6 + Math.floor(Math.random() * 5)
+      const radius = compact ? 1.35 : 1.7
+
+      for (let i = 0; i < segCount * 2; i += 2) {
+        const a = Math.random() * Math.PI * 2
+        const b = Math.random() * Math.PI - Math.PI / 2
+        const r = radius * (0.6 + Math.random() * 0.45)
+
+        const x1 = Math.cos(a) * Math.cos(b) * r
+        const y1 = Math.sin(b) * r + (compact ? 0.02 : 0.06)
+        const z1 = Math.sin(a) * Math.cos(b) * r
+
+        // segment court, jitteré
+        const x2 = x1 + (Math.random() - 0.5) * (compact ? 0.35 : 0.5)
+        const y2 = y1 + (Math.random() - 0.5) * (compact ? 0.25 : 0.35)
+        const z2 = z1 + (Math.random() - 0.5) * (compact ? 0.35 : 0.5)
+
+        const o = i * 3
+        arr[o + 0] = x1
+        arr[o + 1] = y1
+        arr[o + 2] = z1
+        arr[o + 3] = x2
+        arr[o + 4] = y2
+        arr[o + 5] = z2
+      }
+
+      posAttr.needsUpdate = true
+      geometry.setDrawRange(0, segCount * 2)
+      lifeRef.current = compact ? 0.18 : 0.22
+      mat.opacity = 0.9
+      mat.visible = true
+    }
+
+    if (lifeRef.current > 0) {
+      lifeRef.current = Math.max(0, lifeRef.current - state.clock.getDelta())
+      mat.opacity = Math.min(1, lifeRef.current * 6.5)
+      if (lifeRef.current === 0) {
+        geometry.setDrawRange(0, 0)
+        mat.visible = false
+      }
+    }
+  })
+
+  return (
+    <lineSegments ref={lineRef} geometry={geometry}>
+      <lineBasicMaterial
+        ref={materialRef}
+        color={ACCENT}
+        transparent
+        opacity={0}
+        depthWrite={false}
+        visible={false}
+      />
+    </lineSegments>
+  )
+}
+
+function SubtleParticles({
+  compact,
+}: {
+  compact: boolean
+}): ReactElement {
+  const pointsRef = useRef<THREE.Points>(null)
+  const count = compact ? 36 : 80
+
+  const { positions, speeds } = useMemo(() => {
+    const positions = new Float32Array(count * 3)
+    const speeds = new Float32Array(count)
+
+    for (let i = 0; i < count; i += 1) {
+      const r = 1.55 + Math.random() * 1.1
+      const a = Math.random() * Math.PI * 2
+      const y = (Math.random() - 0.5) * 1.2
+      positions[i * 3 + 0] = Math.cos(a) * r
+      positions[i * 3 + 1] = y
+      positions[i * 3 + 2] = Math.sin(a) * r
+      speeds[i] = 0.05 + Math.random() * 0.08
+    }
+    return { positions, speeds }
+  }, [count])
+
+  useFrame((state) => {
+    const pts = pointsRef.current
+    if (!pts) return
+    const attr = pts.geometry.getAttribute('position') as THREE.BufferAttribute
+    const arr = attr.array as Float32Array
+    const t = state.clock.elapsedTime
+
+    for (let i = 0; i < count; i += 1) {
+      const o = i * 3
+      arr[o + 1] += Math.sin(t * 0.35 + i) * (speeds[i] * 0.002)
+      // léger drift circulaire
+      const x = arr[o + 0]
+      const z = arr[o + 2]
+      arr[o + 0] = x * 0.9996 - z * 0.0004
+      arr[o + 2] = z * 0.9996 + x * 0.0004
+    }
+    attr.needsUpdate = true
+  })
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        color={ACCENT}
+        size={compact ? 0.016 : 0.02}
+        sizeAttenuation
+        transparent
+        opacity={compact ? 0.14 : 0.18}
+        depthWrite={false}
+      />
+    </points>
+  )
+}
+
 function HeroLogoWorld({
   hovered,
   onHoverChange,
@@ -196,9 +401,11 @@ function HeroLogoWorld({
   onHoverChange: (v: boolean) => void
   logoScale: number
 }): ReactElement {
+  const compact = useCompactViewport()
+
   return (
     <>
-      <ambientLight intensity={0.2} />
+      <ambientLight intensity={0.18} />
       <hemisphereLight
         color="#eef8ff"
         groundColor="#080808"
@@ -215,19 +422,15 @@ function HeroLogoWorld({
         color="#00ff9d"
       />
       <pointLight
-        position={[0, 3, 6]}
-        intensity={0.65}
-        color="#00ff9d"
-        distance={14}
-        decay={2}
-      />
-      <pointLight
         position={[-4, 2, 4]}
         intensity={0.25}
         color="#a8fff0"
         distance={12}
         decay={2}
       />
+      <NeonPulse compact={compact} />
+      <SubtleParticles compact={compact} />
+      <LightningCrackle compact={compact} />
       <HeroLogoModel
         hovered={hovered}
         onHoverChange={onHoverChange}
@@ -243,7 +446,7 @@ function HeroLogo3DBlock(): ReactElement {
 
   return (
     <Canvas
-      className="relative mx-auto w-full max-w-[min(100%,280px)] cursor-grab touch-none active:cursor-grabbing sm:max-w-[min(100%,360px)] md:max-w-3xl h-[min(34svh,240px)] min-h-[188px] md:h-[min(44vh,440px)] md:min-h-[260px]"
+      className="relative mx-auto w-full max-w-[min(100%,320px)] -mt-2 cursor-grab touch-none active:cursor-grabbing sm:max-w-[min(100%,420px)] sm:-mt-3 md:max-w-4xl md:-mt-4 h-[min(40svh,300px)] min-h-[220px] md:h-[min(52vh,520px)] md:min-h-[320px]"
       frameloop="always"
       gl={{
         antialias: !compact,
@@ -253,15 +456,15 @@ function HeroLogo3DBlock(): ReactElement {
       }}
       dpr={compact ? 1 : [1, 2]}
       camera={{
-        position: [0, compact ? 0.12 : 0.2, compact ? 6.1 : 5.2],
-        fov: compact ? 38 : 42,
+        position: [0, compact ? 0.2 : 0.28, compact ? 6 : 5],
+        fov: compact ? 40 : 42,
       }}
     >
       <Suspense fallback={null}>
         <HeroLogoWorld
           hovered={hovered}
           onHoverChange={setHovered}
-          logoScale={compact ? 1.45 : 2.2}
+          logoScale={compact ? 1.7 : 2.55}
         />
       </Suspense>
     </Canvas>
@@ -320,12 +523,48 @@ function Navbar(): ReactElement {
 
 function HomePage(): ReactElement {
   const compact = useCompactViewport()
-  const [heroBgVideoSrc] = useState(
-    () =>
-      HERO_BG_VIDEO_CLIPS[
+  const pickRandomClip = useCallback(
+    (exclude?: string): (typeof HERO_BG_VIDEO_CLIPS)[number] => {
+      if (HERO_BG_VIDEO_CLIPS.length <= 1) return HERO_BG_VIDEO_CLIPS[0]!
+      let next = HERO_BG_VIDEO_CLIPS[
         Math.floor(Math.random() * HERO_BG_VIDEO_CLIPS.length)
-      ]!,
+      ]!
+      if (exclude) {
+        // évite de retomber sur le même clip (quelques tentatives max)
+        for (let i = 0; i < 4 && next === exclude; i += 1) {
+          next = HERO_BG_VIDEO_CLIPS[
+            Math.floor(Math.random() * HERO_BG_VIDEO_CLIPS.length)
+          ]!
+        }
+      }
+      return next
+    },
+    [],
   )
+
+  const [heroBgA, setHeroBgA] = useState<(typeof HERO_BG_VIDEO_CLIPS)[number]>(
+    () => pickRandomClip(),
+  )
+  const [heroBgB, setHeroBgB] = useState<(typeof HERO_BG_VIDEO_CLIPS)[number]>(
+    () => pickRandomClip(),
+  )
+  const [showA, setShowA] = useState(true)
+  const currentSrc = showA ? heroBgA : heroBgB
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const next = pickRandomClip(currentSrc)
+      if (showA) setHeroBgB(next)
+      else setHeroBgA(next)
+
+      // laisse un court instant au navigateur pour charger avant le fade
+      window.setTimeout(() => {
+        setShowA((v) => !v)
+      }, 80)
+    }, HERO_BG_SWITCH_MS)
+
+    return () => window.clearInterval(id)
+  }, [currentSrc, pickRandomClip, showA])
 
   return (
     <main className="min-h-screen bg-[#060606] pb-24 pt-20 text-neutral-200 sm:pb-28">
@@ -334,15 +573,44 @@ function HomePage(): ReactElement {
         className="relative flex min-h-[calc(100svh-5rem)] w-full flex-col items-center justify-center overflow-hidden px-3 sm:px-6 md:px-8"
         aria-labelledby="hero-heading"
       >
+        {/* Base mood */}
         <div className="absolute inset-0 bg-gradient-to-b from-black via-[#070707] to-black" aria-hidden />
+
+        {/* Crossfade: 2 vidéos empilées */}
         <video
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.35] sm:object-center"
-          src={heroBgVideoSrc}
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.5] transition-opacity ease-out sm:object-center ${
+            showA ? 'opacity-[0.5]' : 'opacity-0'
+          }`}
+          style={{ transitionDuration: `${HERO_BG_CROSSFADE_MS}ms` }}
+          src={heroBgA}
           muted
           autoPlay
           playsInline
           loop
           preload={compact ? 'metadata' : 'auto'}
+          aria-hidden
+        />
+        <video
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.5] transition-opacity ease-out sm:object-center ${
+            showA ? 'opacity-0' : 'opacity-[0.5]'
+          }`}
+          style={{ transitionDuration: `${HERO_BG_CROSSFADE_MS}ms` }}
+          src={heroBgB}
+          muted
+          autoPlay
+          playsInline
+          loop
+          preload={compact ? 'metadata' : 'auto'}
+          aria-hidden
+        />
+
+        {/* Overlay cinéma: top→bottom + vignette coins */}
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/25 to-black/70"
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 [background:radial-gradient(closest-side,rgba(0,0,0,0)_55%,rgba(0,0,0,0.55)_100%)]"
           aria-hidden
         />
         <div
@@ -441,40 +709,6 @@ function HomePage(): ReactElement {
         </div>
       </section>
 
-      {/* Clips */}
-      <section
-        id="clips"
-        className="mx-auto mt-24 max-w-6xl px-4 sm:px-6"
-        aria-labelledby="clips-heading"
-      >
-        <h3
-          id="clips-heading"
-          className="mb-12 text-center font-mono text-[10px] uppercase tracking-[0.5em] text-[#00ff9d]/60 sm:text-[11px]"
-        >
-          Clips
-        </h3>
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-          <video
-            src={publicAsset('clips/clip1.mp4')}
-            controls
-            playsInline
-            className="w-full rounded-2xl border border-white/[0.07] bg-black shadow-[0_24px_56px_-18px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.04)]"
-          />
-          <video
-            src={publicAsset('clips/clip2.mp4')}
-            controls
-            playsInline
-            className="w-full rounded-2xl border border-white/[0.07] bg-black shadow-[0_24px_56px_-18px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.04)]"
-          />
-          <video
-            src={publicAsset('clips/clip3.mp4')}
-            controls
-            playsInline
-            className="w-full rounded-2xl border border-white/[0.07] bg-black shadow-[0_24px_56px_-18px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.04)]"
-          />
-        </div>
-      </section>
-
       {/* CTA */}
       <div className="mx-auto mt-24 flex justify-center px-4">
         <Link
@@ -515,13 +749,16 @@ function KdbCharacter({
     onHoverChange(false)
   }, [onHoverChange])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const g = groupRef.current
     if (!g) return
 
     g.rotation.y += AUTO_ROTATION_SPEED * delta
+    g.position.y =
+      ARTBOOK_FLOAT_Y +
+      Math.sin(state.clock.elapsedTime * 0.75) * ARTBOOK_FLOAT_AMPLITUDE
 
-    const target = hovered ? HOVER_SCALE : 1
+    const target = hovered ? HOVER_SCALE : ARTBOOK_BASE_SCALE
     scaleRef.current = THREE.MathUtils.lerp(
       scaleRef.current,
       target,
@@ -589,23 +826,31 @@ function ArtbookScene({
 }): ReactElement {
   return (
     <>
-      <ambientLight intensity={0.35} />
+      {/* Studio lighting (cinématique + rim/edge glow) */}
+      <ambientLight intensity={0.25} />
       <hemisphereLight
         color="#ffffff"
         groundColor="#1a1a1a"
-        intensity={0.65}
+        intensity={0.55}
       />
-      <directionalLight
-        position={[6, 8, 6]}
-        intensity={1.15}
-        color="#ffffff"
+
+      {/* Key (haut / légèrement latéral) */}
+      <directionalLight position={[7, 10, 7]} intensity={1.35} color="#ffffff" />
+
+      {/* Fill (plus doux, teinté) */}
+      <directionalLight position={[-7, 3, 2]} intensity={0.55} color="#c7fff3" />
+
+      {/* Rim light (derrière, accent vert) */}
+      <directionalLight position={[-2, 4, -9]} intensity={0.9} color="#00ff9d" />
+
+      {/* Glow doux */}
+      <pointLight
+        position={[0, 2.6, 6.5]}
+        intensity={compact ? 0.35 : 0.55}
+        color="#00ff9d"
+        distance={16}
+        decay={2}
       />
-      <directionalLight
-        position={[-7, 4, -5]}
-        intensity={0.45}
-        color="#a8fff0"
-      />
-      <directionalLight position={[0, 10, -8]} intensity={0.35} color="#ffeeff" />
 
       <Suspense fallback={<ModelLoadingFallback />}>
         <ArtbookSceneAsync
@@ -620,6 +865,7 @@ function ArtbookScene({
         enablePan
         enableZoom
         enableRotate
+        target={[0, 1.15, 0]}
         minDistance={compact ? 2.4 : 2}
         maxDistance={compact ? 15 : 20}
         dampingFactor={compact ? 0.1 : 0.08}
@@ -652,8 +898,8 @@ function Artbook3DView({
         }}
         dpr={compact ? 1 : [1, 2]}
         camera={{
-          position: [0, 1.15, compact ? 5.35 : 4.5],
-          fov: compact ? 46 : 42,
+          position: [0, 0.98, compact ? 5.55 : 4.7],
+          fov: compact ? 48 : 44,
         }}
       >
         <ArtbookScene
