@@ -11,6 +11,7 @@ import {
   useState,
   type ReactElement,
 } from 'react'
+import type { ReactNode } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import {
   Center,
@@ -68,7 +69,6 @@ const HERO_LOGO_HOVER_SCALE = 1.05
 const HERO_LOGO_SCALE_LERP = 14
 const HERO_LOGO_MODEL_PATH = publicAsset('models/kdb-logo.glb')
 const KDB_CHARACTER_MODEL_PATH = publicAsset('models/kdb.glb')
-const ACCENT = '#00ff9d'
 
 /** Artbook — ajustements visuels (masque artefacts, look premium) */
 const ARTBOOK_BASE_SCALE = 1.04
@@ -149,15 +149,50 @@ function HeroLogoModel({
   hovered,
   onHoverChange,
   logoScale,
+  compact,
 }: {
   hovered: boolean
   onHoverChange: (v: boolean) => void
   logoScale: number
+  compact: boolean
 }): ReactElement {
   const outerRef = useRef<Group>(null)
   const { scene } = useGLTF(HERO_LOGO_MODEL_PATH)
   const model = useMemo(() => scene.clone(), [scene])
   const scaleRef = useRef(1)
+  // Décale l'orientation initiale pour afficher "la belle face" immédiatement
+  // (flip 180° si le modèle démarre sur son dos)
+  const baseYawRef = useRef(Math.PI + 0.95)
+
+  const rngRef = useRef(0x2f6e2b1d)
+  const rand01 = useCallback((): number => {
+    rngRef.current = (rngRef.current * 1664525 + 1013904223) >>> 0
+    return rngRef.current / 0xffffffff
+  }, [])
+
+  const strike = useMemo(() => {
+    const points = 7
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(new Float32Array(points * 3), 3),
+    )
+    const material = new THREE.LineBasicMaterial({
+      color: new THREE.Color('#e8f7ff'),
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      depthTest: false,
+      blending: THREE.AdditiveBlending,
+    })
+    const line = new THREE.Line(geometry, material)
+    line.visible = false
+    return { line, geometry, material, points }
+  }, [])
+
+  const strikeTTL = useRef(0)
+  const nextStrikeAt = useRef(0)
+  const strikeLightRef = useRef<THREE.PointLight>(null)
 
   const onPointerOver = useCallback(() => {
     onHoverChange(true)
@@ -171,9 +206,29 @@ function HeroLogoModel({
     const g = outerRef.current
     if (!g) return
 
-    g.rotation.y += HERO_LOGO_ROTATION_SPEED * delta
+    const lerpAlpha = 0.08
+
+    // Rotation de base + tilt parallax souris (haut de gamme / smooth)
+    baseYawRef.current += HERO_LOGO_ROTATION_SPEED * delta
+    const px = state.pointer.x
+    const py = state.pointer.y
+
+    const tiltX = (compact ? 0.16 : 0.2) * -py
+    const tiltZ = (compact ? 0.14 : 0.18) * px
+    const yawOffset = (compact ? 0.18 : 0.24) * px
+
+    const targetX = tiltX
+    const targetZ = tiltZ
+    const targetY = baseYawRef.current + yawOffset
+
+    g.rotation.x = THREE.MathUtils.lerp(g.rotation.x, targetX, lerpAlpha)
+    g.rotation.y = THREE.MathUtils.lerp(g.rotation.y, targetY, lerpAlpha)
+    g.rotation.z = THREE.MathUtils.lerp(g.rotation.z, targetZ, lerpAlpha)
     const t = state.clock.elapsedTime
-    g.position.y = Math.sin(t * 0.85) * 0.1
+    // Reframe: évite de couper le haut des lettres, tout en restant haut dans le hero
+    g.position.y =
+      (compact ? 0.37 : 0.41) +
+      Math.sin(t * 0.85) * (compact ? 0.03 : 0.04)
 
     const target = hovered ? HERO_LOGO_HOVER_SCALE : 1
     scaleRef.current = THREE.MathUtils.lerp(
@@ -182,6 +237,47 @@ function HeroLogoModel({
       Math.min(1, HERO_LOGO_SCALE_LERP * delta),
     )
     g.scale.setScalar(scaleRef.current)
+
+    // Lightning strike: occasional vertical hit from above (local space)
+    const light = strikeLightRef.current
+    if (t >= nextStrikeAt.current && strikeTTL.current <= 0) {
+      const every = compact ? 5.8 : 4.8
+      const jitter = compact ? 4.2 : 3.2
+      nextStrikeAt.current = t + every + rand01() * jitter
+
+      const attr = strike.geometry.getAttribute('position') as THREE.BufferAttribute
+      const topY = compact ? 2.45 : 2.65
+      const bottomY = compact ? 0.55 : 0.62
+      const x0 = (rand01() - 0.5) * (compact ? 0.18 : 0.22)
+      const z0 = (rand01() - 0.5) * (compact ? 0.18 : 0.22)
+
+      for (let i = 0; i < strike.points; i += 1) {
+        const a = i / (strike.points - 1)
+        const y = THREE.MathUtils.lerp(topY, bottomY, a)
+        const j = (1 - a) * (compact ? 0.22 : 0.28)
+        const x = x0 + (rand01() - 0.5) * j
+        const z = z0 + (rand01() - 0.5) * j
+        attr.setXYZ(i, x, y, z)
+      }
+      attr.needsUpdate = true
+
+      strikeTTL.current = compact ? 0.22 : 0.26
+      strike.material.opacity = 1
+      strike.line.visible = true
+      if (light) light.intensity = compact ? 1.2 : 1.6
+    }
+
+    if (strikeTTL.current > 0) {
+      strikeTTL.current = Math.max(0, strikeTTL.current - delta)
+      const a = Math.min(1, strikeTTL.current / 0.12)
+      strike.material.opacity = (compact ? 1.1 : 1.25) * a
+      if (light) light.intensity = (compact ? 1.7 : 2.2) * a
+      if (strikeTTL.current === 0) {
+        strike.line.visible = false
+        strike.material.opacity = 0
+        if (light) light.intensity = 0
+      }
+    }
   })
 
   return (
@@ -193,6 +289,15 @@ function HeroLogoModel({
       <Center>
         <primitive object={model} scale={logoScale} />
       </Center>
+      <primitive object={strike.line} />
+      <pointLight
+        ref={strikeLightRef}
+        position={[0, compact ? 1.25 : 1.35, compact ? 0.4 : 0.5]}
+        intensity={0}
+        color="#e8f7ff"
+        distance={compact ? 6 : 8}
+        decay={2}
+      />
     </group>
   )
 }
@@ -213,228 +318,78 @@ function NeonPulse({
       0.08 * Math.sin(t * 2.7 + 0.6)
 
     const key = keyRef.current
-    if (key) key.intensity = (compact ? 0.38 : 0.62) * pulse
+    if (key) key.intensity = (compact ? 0.45 : 0.78) * pulse
 
     const rim = rimRef.current
-    if (rim) rim.intensity = (compact ? 0.7 : 0.95) * (0.85 + 0.15 * pulse)
+    if (rim) rim.intensity = (compact ? 0.5 : 0.72) * (0.85 + 0.15 * pulse)
   })
 
   return (
     <>
       <pointLight
         ref={keyRef}
-        position={[0, 2.8, 6.3]}
-        intensity={compact ? 0.38 : 0.62}
-        color={ACCENT}
-        distance={compact ? 11 : 14}
+        position={[0, 2.4, 5.8]}
+        intensity={compact ? 0.45 : 0.78}
+        color="#00ff9d"
+        distance={compact ? 12 : 16}
         decay={2}
       />
       <directionalLight
         ref={rimRef}
-        position={[-2, 2.5, -7]}
-        intensity={compact ? 0.7 : 0.95}
-        color={ACCENT}
+        position={[-2.4, 2.2, -6.8]}
+        intensity={compact ? 0.5 : 0.72}
+        color="#00ff9d"
       />
     </>
   )
 }
-
-function LightningCrackle({
-  compact,
-}: {
-  compact: boolean
-}): ReactElement {
-  const lineRef = useRef<THREE.LineSegments>(null)
-  const materialRef = useRef<THREE.LineBasicMaterial>(null)
-  const lifeRef = useRef(0)
-  const nextRef = useRef(0)
-
-  const { geometry } = useMemo(() => {
-    const geometry = new THREE.BufferGeometry()
-    const maxSegments = compact ? 10 : 18
-    const positions = new Float32Array(maxSegments * 2 * 3)
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    geometry.setDrawRange(0, 0)
-    return { geometry, maxSegments, positions }
-  }, [compact])
-
-  useFrame((state) => {
-    const mat = materialRef.current
-    const line = lineRef.current
-    if (!mat || !line) return
-
-    const t = state.clock.elapsedTime
-    if (t >= nextRef.current && lifeRef.current <= 0) {
-      // déclenchement rare, plus rare sur mobile
-      const baseEvery = compact ? 5.8 : 4.2
-      const jitter = compact ? 3.2 : 2.2
-      nextRef.current = t + baseEvery + Math.random() * jitter
-
-      const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute
-      const arr = posAttr.array as Float32Array
-      const segCount = compact ? 4 + Math.floor(Math.random() * 3) : 6 + Math.floor(Math.random() * 5)
-      const radius = compact ? 1.35 : 1.7
-
-      for (let i = 0; i < segCount * 2; i += 2) {
-        const a = Math.random() * Math.PI * 2
-        const b = Math.random() * Math.PI - Math.PI / 2
-        const r = radius * (0.6 + Math.random() * 0.45)
-
-        const x1 = Math.cos(a) * Math.cos(b) * r
-        const y1 = Math.sin(b) * r + (compact ? 0.02 : 0.06)
-        const z1 = Math.sin(a) * Math.cos(b) * r
-
-        // segment court, jitteré
-        const x2 = x1 + (Math.random() - 0.5) * (compact ? 0.35 : 0.5)
-        const y2 = y1 + (Math.random() - 0.5) * (compact ? 0.25 : 0.35)
-        const z2 = z1 + (Math.random() - 0.5) * (compact ? 0.35 : 0.5)
-
-        const o = i * 3
-        arr[o + 0] = x1
-        arr[o + 1] = y1
-        arr[o + 2] = z1
-        arr[o + 3] = x2
-        arr[o + 4] = y2
-        arr[o + 5] = z2
-      }
-
-      posAttr.needsUpdate = true
-      geometry.setDrawRange(0, segCount * 2)
-      lifeRef.current = compact ? 0.18 : 0.22
-      mat.opacity = 0.9
-      mat.visible = true
-    }
-
-    if (lifeRef.current > 0) {
-      lifeRef.current = Math.max(0, lifeRef.current - state.clock.getDelta())
-      mat.opacity = Math.min(1, lifeRef.current * 6.5)
-      if (lifeRef.current === 0) {
-        geometry.setDrawRange(0, 0)
-        mat.visible = false
-      }
-    }
-  })
-
-  return (
-    <lineSegments ref={lineRef} geometry={geometry}>
-      <lineBasicMaterial
-        ref={materialRef}
-        color={ACCENT}
-        transparent
-        opacity={0}
-        depthWrite={false}
-        visible={false}
-      />
-    </lineSegments>
-  )
-}
-
-function SubtleParticles({
-  compact,
-}: {
-  compact: boolean
-}): ReactElement {
-  const pointsRef = useRef<THREE.Points>(null)
-  const count = compact ? 36 : 80
-
-  const { positions, speeds } = useMemo(() => {
-    const positions = new Float32Array(count * 3)
-    const speeds = new Float32Array(count)
-
-    for (let i = 0; i < count; i += 1) {
-      const r = 1.55 + Math.random() * 1.1
-      const a = Math.random() * Math.PI * 2
-      const y = (Math.random() - 0.5) * 1.2
-      positions[i * 3 + 0] = Math.cos(a) * r
-      positions[i * 3 + 1] = y
-      positions[i * 3 + 2] = Math.sin(a) * r
-      speeds[i] = 0.05 + Math.random() * 0.08
-    }
-    return { positions, speeds }
-  }, [count])
-
-  useFrame((state) => {
-    const pts = pointsRef.current
-    if (!pts) return
-    const attr = pts.geometry.getAttribute('position') as THREE.BufferAttribute
-    const arr = attr.array as Float32Array
-    const t = state.clock.elapsedTime
-
-    for (let i = 0; i < count; i += 1) {
-      const o = i * 3
-      arr[o + 1] += Math.sin(t * 0.35 + i) * (speeds[i] * 0.002)
-      // léger drift circulaire
-      const x = arr[o + 0]
-      const z = arr[o + 2]
-      arr[o + 0] = x * 0.9996 - z * 0.0004
-      arr[o + 2] = z * 0.9996 + x * 0.0004
-    }
-    attr.needsUpdate = true
-  })
-
-  return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        color={ACCENT}
-        size={compact ? 0.016 : 0.02}
-        sizeAttenuation
-        transparent
-        opacity={compact ? 0.14 : 0.18}
-        depthWrite={false}
-      />
-    </points>
-  )
-}
-
 function HeroLogoWorld({
   hovered,
   onHoverChange,
   logoScale,
+  compact,
 }: {
   hovered: boolean
   onHoverChange: (v: boolean) => void
   logoScale: number
+  compact: boolean
 }): ReactElement {
-  const compact = useCompactViewport()
-
   return (
     <>
+      {/* Base très neutre */}
       <ambientLight intensity={0.18} />
-      <hemisphereLight
-        color="#eef8ff"
-        groundColor="#080808"
-        intensity={0.55}
-      />
-      <directionalLight
-        position={[5, 8, 10]}
-        intensity={1}
-        color="#ffffff"
-      />
-      <directionalLight
-        position={[-6, -4, -8]}
-        intensity={0.35}
-        color="#00ff9d"
-      />
+      <hemisphereLight color="#ffffff" groundColor="#060606" intensity={0.34} />
+
+      {/* Un key light discret pour garder du relief (pas de teinte autre que le glow) */}
+      <directionalLight position={[4, 7, 9]} intensity={0.5} color="#ffffff" />
+      {/* Fill léger derrière pour éviter un dos trop noir/plat */}
+      <directionalLight position={[-3.5, 2.5, -7]} intensity={0.22} color="#ffffff" />
+      {/* Neon back glow: colle au thème (accent vert) */}
+      <directionalLight position={[0, 2.2, -9]} intensity={0.82} color="#00ff9d" />
       <pointLight
-        position={[-4, 2, 4]}
-        intensity={0.25}
-        color="#a8fff0"
-        distance={12}
+        position={[0, 1.2, -4.8]}
+        intensity={compact ? 0.55 : 0.78}
+        color="#00ff9d"
+        distance={compact ? 10 : 14}
         decay={2}
       />
+      {/* Fill côté caméra pour garder du détail même quand la face "moins jolie" passe */}
+      <pointLight
+        position={[0, 1.35, 4.9]}
+        intensity={compact ? 0.2 : 0.3}
+        color="#ffffff"
+        distance={compact ? 10 : 12}
+        decay={2}
+      />
+
+      {/* Glow neon vert (pulse) + éclairs gérés dans HeroLogoModel */}
       <NeonPulse compact={compact} />
-      <SubtleParticles compact={compact} />
-      <LightningCrackle compact={compact} />
+
       <HeroLogoModel
         hovered={hovered}
         onHoverChange={onHoverChange}
         logoScale={logoScale}
+        compact={compact}
       />
     </>
   )
@@ -446,7 +401,7 @@ function HeroLogo3DBlock(): ReactElement {
 
   return (
     <Canvas
-      className="relative mx-auto w-full max-w-[min(100%,320px)] -mt-2 cursor-grab touch-none active:cursor-grabbing sm:max-w-[min(100%,420px)] sm:-mt-3 md:max-w-4xl md:-mt-4 h-[min(40svh,300px)] min-h-[220px] md:h-[min(52vh,520px)] md:min-h-[320px]"
+      className="relative mx-auto w-full max-w-[min(100%,560px)] cursor-none touch-none active:cursor-none sm:max-w-[min(100%,760px)] md:max-w-6xl h-[min(62svh,560px)] min-h-[340px] md:h-[min(70vh,820px)] md:min-h-[520px]"
       frameloop="always"
       gl={{
         antialias: !compact,
@@ -456,15 +411,17 @@ function HeroLogo3DBlock(): ReactElement {
       }}
       dpr={compact ? 1 : [1, 2]}
       camera={{
-        position: [0, compact ? 0.2 : 0.28, compact ? 6 : 5],
-        fov: compact ? 40 : 42,
+        // Caméra un poil plus reculée/large pour éviter le crop du haut
+        position: [0, compact ? 0.6 : 0.68, compact ? 5.15 : 4.45],
+        fov: compact ? 36 : 38,
       }}
     >
       <Suspense fallback={null}>
         <HeroLogoWorld
           hovered={hovered}
           onHoverChange={setHovered}
-          logoScale={compact ? 1.7 : 2.55}
+          logoScale={compact ? 2.35 : 3.4}
+          compact={compact}
         />
       </Suspense>
     </Canvas>
@@ -521,6 +478,50 @@ function Navbar(): ReactElement {
 // Accueil
 // ---------------------------------------------------------------------------
 
+function ScrollReveal({
+  children,
+  delay = 0,
+}: {
+  children: ReactNode
+  delay?: number
+}): ReactElement {
+  const ref = useRef<HTMLDivElement | null>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) return
+        if (entry.isIntersecting) {
+          setVisible(true)
+          io.disconnect()
+        }
+      },
+      { threshold: 0.15 },
+    )
+
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      style={{ transitionDelay: `${delay}ms` }}
+      className={`transition-all duration-1000 will-change-transform ${
+        visible
+          ? 'opacity-100 blur-0 translate-y-0'
+          : 'opacity-0 blur-[2px] translate-y-12'
+      }`}
+    >
+      {children}
+    </div>
+  )
+}
+
 function HomePage(): ReactElement {
   const compact = useCompactViewport()
   const pickRandomClip = useCallback(
@@ -570,7 +571,7 @@ function HomePage(): ReactElement {
     <main className="min-h-screen bg-[#060606] pb-24 pt-20 text-neutral-200 sm:pb-28">
       {/* Hero */}
       <section
-        className="relative flex min-h-[calc(100svh-5rem)] w-full flex-col items-center justify-center overflow-hidden px-3 sm:px-6 md:px-8"
+        className="relative flex min-h-[calc(100svh-5rem)] w-full flex-col items-center justify-start overflow-hidden px-3 pt-4 sm:px-6 sm:pt-6 md:px-8 md:pt-8"
         aria-labelledby="hero-heading"
       >
         {/* Base mood */}
@@ -579,7 +580,7 @@ function HomePage(): ReactElement {
         {/* Crossfade: 2 vidéos empilées */}
         <video
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.5] transition-opacity ease-out sm:object-center ${
-            showA ? 'opacity-[0.5]' : 'opacity-0'
+            showA ? 'opacity-[0.42]' : 'opacity-0'
           }`}
           style={{ transitionDuration: `${HERO_BG_CROSSFADE_MS}ms` }}
           src={heroBgA}
@@ -592,7 +593,7 @@ function HomePage(): ReactElement {
         />
         <video
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.5] transition-opacity ease-out sm:object-center ${
-            showA ? 'opacity-0' : 'opacity-[0.5]'
+            showA ? 'opacity-0' : 'opacity-[0.42]'
           }`}
           style={{ transitionDuration: `${HERO_BG_CROSSFADE_MS}ms` }}
           src={heroBgB}
@@ -609,6 +610,11 @@ function HomePage(): ReactElement {
           className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/25 to-black/70"
           aria-hidden
         />
+        {/* Spotlight sombre au centre pour lisibilité du logo (sans “carré” derrière) */}
+        <div
+          className="absolute inset-0 [background:radial-gradient(70%_55%_at_50%_35%,rgba(0,0,0,0.42)_0%,rgba(0,0,0,0.14)_48%,rgba(0,0,0,0.62)_100%)]"
+          aria-hidden
+        />
         <div
           className="absolute inset-0 [background:radial-gradient(closest-side,rgba(0,0,0,0)_55%,rgba(0,0,0,0.55)_100%)]"
           aria-hidden
@@ -619,105 +625,106 @@ function HomePage(): ReactElement {
         />
 
         <div className="relative z-10 mx-auto w-full max-w-4xl px-2 text-center sm:px-4 md:px-6">
-          <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.62em] text-[#00ff9d]/55 sm:mb-8 sm:text-[11px]">
-            Valais
-          </p>
           <h2 id="hero-heading" className="sr-only">
             KDB
           </h2>
           <HeroLogo3DBlock />
-          <p className="mt-5 text-xs font-medium uppercase tracking-[0.32em] text-[#00ff9d]/85 sm:mt-8 sm:text-base sm:tracking-[0.38em] md:text-lg">
-            Rappeur <span className="mx-1 text-neutral-600">·</span> Sound Architect
-          </p>
-          <div className="mx-auto mt-8 h-px w-20 max-w-full bg-gradient-to-r from-transparent via-[#00ff9d]/35 to-transparent sm:mt-14 sm:w-28" />
         </div>
       </section>
 
       {/* Bio */}
-      <section
-        className="mx-auto max-w-5xl border-t border-white/[0.05] px-4 py-24 sm:px-6 lg:px-8 lg:py-32"
-        aria-labelledby="bio-heading"
-      >
-        <h3 id="bio-heading" className="sr-only">
-          Biographie
-        </h3>
-        <div className="flex flex-col items-center gap-14 rounded-[2rem] border border-white/[0.05] bg-gradient-to-br from-white/[0.03] to-transparent px-8 py-12 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm md:flex-row md:items-center md:gap-16 md:px-12 md:py-14 lg:gap-20">
-          <img
-            src={publicAsset('images/bio-photo.jpg')}
-            alt="KDB"
-            className="w-64 shrink-0 rounded-2xl shadow-[0_24px_64px_-16px_rgba(0,0,0,0.75),0_0_0_1px_rgba(255,255,255,0.08),0_0_48px_-8px_rgba(0,255,157,0.12)] ring-1 ring-white/[0.08]"
-          />
-          <p className="max-w-xl text-pretty text-base font-light leading-[1.75] tracking-wide text-neutral-400 sm:text-lg">
-            KDB est un rappeur et sound architect du Valais. Il mélange rap
-            sombre, flows tranchants et textures électroniques pour créer une
-            atmosphère unique.
-          </p>
-        </div>
-      </section>
+      <ScrollReveal delay={220}>
+        <section
+          className="mx-auto max-w-5xl border-t border-white/[0.05] px-4 py-24 sm:px-6 lg:px-8 lg:py-32"
+          aria-labelledby="bio-heading"
+        >
+          <h3 id="bio-heading" className="sr-only">
+            Biographie
+          </h3>
+          <div className="flex flex-col items-center gap-14 rounded-[2rem] border border-white/[0.05] bg-gradient-to-br from-white/[0.03] to-transparent px-8 py-12 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm md:flex-row md:items-center md:gap-16 md:px-12 md:py-14 lg:gap-20">
+            <img
+              src={publicAsset('images/bio-photo.jpg')}
+              alt="KDB"
+              className="w-64 shrink-0 rounded-2xl shadow-[0_24px_64px_-16px_rgba(0,0,0,0.75),0_0_0_1px_rgba(255,255,255,0.08),0_0_48px_-8px_rgba(0,255,157,0.12)] ring-1 ring-white/[0.08]"
+            />
+            <p className="max-w-xl text-pretty text-base font-light leading-[1.75] tracking-wide text-neutral-400 sm:text-lg">
+              KDB est un rappeur et sound architect du Valais. Il mélange rap
+              sombre, flows tranchants et textures électroniques pour créer une
+              atmosphère unique.
+            </p>
+          </div>
+        </section>
+      </ScrollReveal>
 
       {/* Spotify — Artiste */}
-      <section
-        className="mx-auto max-w-3xl px-4 sm:px-6"
-        aria-labelledby="spotify-artist-heading"
-      >
-        <h3
-          id="spotify-artist-heading"
-          className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.48em] text-[#00ff9d]/60 sm:text-[11px]"
+      <ScrollReveal delay={280}>
+        <section
+          className="mx-auto max-w-3xl px-4 sm:px-6"
+          aria-labelledby="spotify-artist-heading"
         >
-          Spotify — Artiste
-        </h3>
-        <div className="overflow-hidden rounded-[1.35rem] border border-white/[0.06] bg-[#0a0a0a] p-[10px] shadow-[0_24px_64px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(0,255,157,0.06),inset_0_1px_0_rgba(255,255,255,0.04)]">
-          {/* Spotify Artiste */}
-          <iframe
-            style={{ borderRadius: '12px' }}
-            src="https://open.spotify.com/embed/artist/1NC0W7a8PRhAkuQxU15Bt1?utm_source=generator"
-            width="100%"
-            height="352"
-            frameBorder="0"
-            allowFullScreen
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            title="Spotify — Profil artiste KDB"
-          />
-        </div>
-      </section>
+          <h3
+            id="spotify-artist-heading"
+            className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.48em] text-[#00ff9d]/60 sm:text-[11px]"
+          >
+            Spotify — Artiste
+          </h3>
+          <div className="overflow-hidden rounded-[1.35rem] border border-white/[0.06] bg-[#0a0a0a] p-[10px] shadow-[0_24px_64px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(0,255,157,0.06),inset_0_1px_0_rgba(255,255,255,0.04)]">
+            {/* Spotify Artiste */}
+            <iframe
+              style={{ borderRadius: '12px' }}
+              src="https://open.spotify.com/embed/artist/1NC0W7a8PRhAkuQxU15Bt1?utm_source=generator"
+              width="100%"
+              height="352"
+              frameBorder="0"
+              allowFullScreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              title="Spotify — Profil artiste KDB"
+            />
+          </div>
+        </section>
+      </ScrollReveal>
 
       {/* Spotify — EP EXIT */}
-      <section
-        className="mx-auto mt-20 max-w-3xl px-4 sm:px-6"
-        aria-labelledby="spotify-exit-heading"
-      >
-        <h3
-          id="spotify-exit-heading"
-          className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.48em] text-[#00ff9d]/60 sm:text-[11px]"
+      <ScrollReveal delay={340}>
+        <section
+          className="mx-auto mt-20 max-w-3xl px-4 sm:px-6"
+          aria-labelledby="spotify-exit-heading"
         >
-          EP — EXIT
-        </h3>
-        <div className="overflow-hidden rounded-[1.35rem] border border-white/[0.06] bg-[#0a0a0a] p-[10px] shadow-[0_24px_64px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(0,255,157,0.06),inset_0_1px_0_rgba(255,255,255,0.04)]">
-          {/* Spotify EP EXIT */}
-          <iframe
-            style={{ borderRadius: '12px' }}
-            src="https://open.spotify.com/embed/album/3IKatiK62lDIKTqZK5l7Sv?utm_source=generator"
-            width="100%"
-            height="352"
-            frameBorder="0"
-            allowFullScreen
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            title="Spotify — EP EXIT"
-          />
-        </div>
-      </section>
+          <h3
+            id="spotify-exit-heading"
+            className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.48em] text-[#00ff9d]/60 sm:text-[11px]"
+          >
+            EP — EXIT
+          </h3>
+          <div className="overflow-hidden rounded-[1.35rem] border border-white/[0.06] bg-[#0a0a0a] p-[10px] shadow-[0_24px_64px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(0,255,157,0.06),inset_0_1px_0_rgba(255,255,255,0.04)]">
+            {/* Spotify EP EXIT */}
+            <iframe
+              style={{ borderRadius: '12px' }}
+              src="https://open.spotify.com/embed/album/3IKatiK62lDIKTqZK5l7Sv?utm_source=generator"
+              width="100%"
+              height="352"
+              frameBorder="0"
+              allowFullScreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              title="Spotify — EP EXIT"
+            />
+          </div>
+        </section>
+      </ScrollReveal>
 
       {/* CTA */}
-      <div className="mx-auto mt-24 flex justify-center px-4">
-        <Link
-          to="/artbook"
-          className="inline-flex items-center justify-center rounded-full border border-[#00ff9d]/40 bg-[#00ff9d]/[0.06] px-11 py-4 text-[11px] font-semibold uppercase tracking-[0.38em] text-[#00ff9d] shadow-[0_0_32px_rgba(0,255,157,0.12)] transition duration-300 hover:border-[#00ff9d]/70 hover:bg-[#00ff9d]/10 hover:shadow-[0_0_48px_rgba(0,255,157,0.22)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00ff9d] sm:text-xs"
-        >
-          Entrer dans l&apos;Artbook
-        </Link>
-      </div>
+      <ScrollReveal delay={420}>
+        <div className="mx-auto mt-24 flex justify-center px-4">
+          <Link
+            to="/artbook"
+            className="inline-flex items-center justify-center rounded-full border border-[#00ff9d]/40 bg-[#00ff9d]/[0.06] px-11 py-4 text-[11px] font-semibold uppercase tracking-[0.38em] text-[#00ff9d] shadow-[0_0_32px_rgba(0,255,157,0.12)] transition duration-300 hover:border-[#00ff9d]/70 hover:bg-[#00ff9d]/10 hover:shadow-[0_0_48px_rgba(0,255,157,0.22)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00ff9d] sm:text-xs"
+          >
+            Entrer dans l&apos;Artbook
+          </Link>
+        </div>
+      </ScrollReveal>
     </main>
   )
 }
@@ -888,7 +895,7 @@ function Artbook3DView({
   return (
     <div className="h-[min(52svh,calc(100svh-6rem))] min-h-[260px] w-full sm:min-h-[300px] sm:h-[min(58svh,calc(100svh-5.5rem))] md:min-h-[320px] md:h-[calc(100vh-80px)]">
       <Canvas
-        className="h-full w-full touch-none"
+        className="h-full w-full touch-none cursor-none active:cursor-none"
         frameloop="always"
         gl={{
           antialias: !compact,
@@ -942,10 +949,43 @@ function ArtbookPage(): ReactElement {
 // App
 // ---------------------------------------------------------------------------
 
+function CustomCursor(): ReactElement {
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  const [isClicking, setIsClicking] = useState(false)
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent): void => {
+      setPos({ x: e.clientX, y: e.clientY })
+    }
+    const onDown = (): void => setIsClicking(true)
+    const onUp = (): void => setIsClicking(false)
+
+    window.addEventListener('mousemove', onMove, { passive: true })
+    window.addEventListener('mousedown', onDown)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mousedown', onDown)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [])
+
+  return (
+    <div
+      className={`fixed top-0 left-0 pointer-events-none z-[9999] w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00ff9d] shadow-[0_0_12px_2px_rgba(0,255,157,0.8)] transition-transform duration-100 ease-out hidden md:block ${
+        isClicking ? 'scale-75' : ''
+      }`}
+      style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
+      aria-hidden
+    />
+  )
+}
+
 export default function App(): ReactElement {
   return (
     <BrowserRouter basename={ROUTER_BASENAME}>
-      <div className="min-h-screen min-w-0 bg-[#060606] antialiased selection:bg-[#00ff9d]/30 selection:text-white">
+      <CustomCursor />
+      <div className="min-h-screen min-w-0 bg-[#060606] antialiased selection:bg-[#00ff9d]/30 selection:text-white md:cursor-none">
         <Navbar />
         <Routes>
           <Route path="/" element={<HomePage />} />
