@@ -308,11 +308,6 @@ function Navbar(): ReactElement {
               Spotify
             </a>
           </li>
-          <li>
-            <Link to="/#clips" className={NAV_LINK_CLASS}>
-              Clips
-            </Link>
-          </li>
         </ul>
       </nav>
     </header>
