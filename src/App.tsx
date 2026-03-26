@@ -23,6 +23,7 @@ import {
   OrbitControls,
   Sparkles,
   useGLTF,
+  useProgress,
 } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Group } from 'three'
@@ -1017,7 +1018,9 @@ function PageTransition({
 }): ReactElement {
   const location = useLocation()
   const [displayLocation, setDisplayLocation] = useState(location)
-  const [transitionClass, setTransitionClass] = useState('opacity-100 blur-0')
+  const [transitionClass, setTransitionClass] = useState(
+    'opacity-100 blur-0 scale-100',
+  )
 
   useEffect(() => {
     const hasRouteChanged =
@@ -1037,7 +1040,9 @@ function PageTransition({
   }, [location, displayLocation])
 
   return (
-    <div className={`transition-all duration-400 ease-in-out ${transitionClass}`}>
+    <div
+      className={`transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${transitionClass}`}
+    >
       {children(displayLocation)}
     </div>
   )
@@ -1062,10 +1067,51 @@ function AppContent(): ReactElement {
   )
 }
 
+function GlobalLoader(): ReactElement | null {
+  const { progress } = useProgress()
+  const [isVisible, setIsVisible] = useState(true)
+  const [isFading, setIsFading] = useState(false)
+
+  useEffect(() => {
+    if (progress !== 100) return
+
+    setIsFading(true)
+    const timeoutId = window.setTimeout(() => {
+      setIsVisible(false)
+    }, 600)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [progress])
+
+  if (!isVisible) return null
+
+  return (
+    <div
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#060606] transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}
+    >
+      <GlitchNavLogo />
+      <div className="mt-8 h-px w-48 bg-white/10 sm:w-64">
+        <div
+          className="h-full bg-[#00ff9d] transition-all duration-300 ease-out shadow-[0_0_10px_rgba(0,255,157,0.5)]"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <p className="mt-4 font-mono text-[10px] tracking-[0.3em] text-[#00ff9d]/70">
+        {Math.round(progress)}%
+      </p>
+    </div>
+  )
+}
+
 export default function App(): ReactElement {
   return (
-    <BrowserRouter basename={ROUTER_BASENAME}>
-      <AppContent />
-    </BrowserRouter>
+    <>
+      <GlobalLoader />
+      <BrowserRouter basename={ROUTER_BASENAME}>
+        <AppContent />
+      </BrowserRouter>
+    </>
   )
 }
