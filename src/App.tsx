@@ -638,9 +638,6 @@ function HomePage(): ReactElement {
             KDB
           </h2>
           <HeroLogo3DBlock />
-          <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.2em] text-[#00ff9d]/85 sm:text-xs sm:tracking-[0.32em] md:text-base">
-            Rappeur · <br className="sm:hidden" /> Sound Architect
-          </p>
         </div>
       </section>
 
