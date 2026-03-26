@@ -29,14 +29,29 @@ import {
 } from 'react-router-dom'
 
 // ---------------------------------------------------------------------------
+// Base Vite (ex. GitHub Pages : vite.config base '/KDB/')
+// ---------------------------------------------------------------------------
+
+/** Chemins vers fichiers dans `public/` — respecte import.meta.env.BASE_URL */
+function publicAsset(path: string): string {
+  const p = path.replace(/^\//, '')
+  return `${import.meta.env.BASE_URL}${p}`
+}
+
+const ROUTER_BASENAME =
+  import.meta.env.BASE_URL === '/'
+    ? undefined
+    : import.meta.env.BASE_URL.replace(/\/$/, '')
+
+// ---------------------------------------------------------------------------
 // Constantes
 // ---------------------------------------------------------------------------
 
 /** Fond vidéo du hero : un clip tiré au hasard à chaque chargement (fichiers dans public/clips/) */
 const HERO_BG_VIDEO_CLIPS = [
-  '/clips/clip1.mp4',
-  '/clips/clip2.mp4',
-  '/clips/clip3.mp4',
+  publicAsset('clips/clip1.mp4'),
+  publicAsset('clips/clip2.mp4'),
+  publicAsset('clips/clip3.mp4'),
 ] as const
 
 const AUTO_ROTATION_SPEED = 0.4
@@ -47,7 +62,8 @@ const SCALE_LERP = 12
 const HERO_LOGO_ROTATION_SPEED = 0.3
 const HERO_LOGO_HOVER_SCALE = 1.05
 const HERO_LOGO_SCALE_LERP = 14
-const HERO_LOGO_MODEL_PATH = '/models/kdb-logo.glb' as const
+const HERO_LOGO_MODEL_PATH = publicAsset('models/kdb-logo.glb')
+const KDB_CHARACTER_MODEL_PATH = publicAsset('models/kdb.glb')
 
 const NAV_LINK_CLASS =
   'text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-500 transition-colors duration-300 hover:text-[#00ff9d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00ff9d] sm:text-xs'
@@ -364,7 +380,7 @@ function HomePage(): ReactElement {
         </h3>
         <div className="flex flex-col items-center gap-14 rounded-[2rem] border border-white/[0.05] bg-gradient-to-br from-white/[0.03] to-transparent px-8 py-12 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm md:flex-row md:items-center md:gap-16 md:px-12 md:py-14 lg:gap-20">
           <img
-            src="/images/bio-photo.jpg"
+            src={publicAsset('images/bio-photo.jpg')}
             alt="KDB"
             className="w-64 shrink-0 rounded-2xl shadow-[0_24px_64px_-16px_rgba(0,0,0,0.75),0_0_0_1px_rgba(255,255,255,0.08),0_0_48px_-8px_rgba(0,255,157,0.12)] ring-1 ring-white/[0.08]"
           />
@@ -444,19 +460,19 @@ function HomePage(): ReactElement {
         </h3>
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           <video
-            src="/clips/clip1.mp4"
+            src={publicAsset('clips/clip1.mp4')}
             controls
             playsInline
             className="w-full rounded-2xl border border-white/[0.07] bg-black shadow-[0_24px_56px_-18px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.04)]"
           />
           <video
-            src="/clips/clip2.mp4"
+            src={publicAsset('clips/clip2.mp4')}
             controls
             playsInline
             className="w-full rounded-2xl border border-white/[0.07] bg-black shadow-[0_24px_56px_-18px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.04)]"
           />
           <video
-            src="/clips/clip3.mp4"
+            src={publicAsset('clips/clip3.mp4')}
             controls
             playsInline
             className="w-full rounded-2xl border border-white/[0.07] bg-black shadow-[0_24px_56px_-18px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.04)]"
@@ -482,7 +498,7 @@ function HomePage(): ReactElement {
 // ---------------------------------------------------------------------------
 
 useGLTF.preload(HERO_LOGO_MODEL_PATH)
-useGLTF.preload('/models/kdb.glb')
+useGLTF.preload(KDB_CHARACTER_MODEL_PATH)
 
 function KdbCharacter({
   hovered,
@@ -492,7 +508,7 @@ function KdbCharacter({
   onHoverChange: (v: boolean) => void
 }): ReactElement {
   const groupRef = useRef<Group>(null)
-  const { scene } = useGLTF('/models/kdb.glb')
+  const { scene } = useGLTF(KDB_CHARACTER_MODEL_PATH)
   const model = useMemo(() => scene.clone(), [scene])
   const scaleRef = useRef(1)
 
@@ -687,7 +703,7 @@ function ArtbookPage(): ReactElement {
 
 export default function App(): ReactElement {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={ROUTER_BASENAME}>
       <div className="min-h-screen min-w-0 bg-[#060606] antialiased selection:bg-[#00ff9d]/30 selection:text-white">
         <Navbar />
         <Routes>
