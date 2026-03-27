@@ -60,6 +60,7 @@ const HERO_BG_VIDEO_CLIPS = [
   publicAsset('clips/clip1.mp4'),
   publicAsset('clips/clip2.mp4'),
   publicAsset('clips/clip3.mp4'),
+  publicAsset('clips/clip4.mp4'),
 ] as const
 
 /** Crossfade entre clips du hero (ms) */
@@ -589,7 +590,7 @@ function HomePage(): ReactElement {
         {/* Crossfade: 2 vidéos empilées */}
         <video
           className={`pointer-events-none absolute inset-0 h-full w-full max-w-[100vw] object-cover object-center opacity-[0.5] transition-opacity ease-out ${
-            showA ? 'opacity-[0.42]' : 'opacity-0'
+            showA ? 'opacity-[0.52]' : 'opacity-0'
           }`}
           style={{ transitionDuration: `${HERO_BG_CROSSFADE_MS}ms` }}
           src={heroBgA}
@@ -602,7 +603,7 @@ function HomePage(): ReactElement {
         />
         <video
           className={`pointer-events-none absolute inset-0 h-full w-full max-w-[100vw] object-cover object-center opacity-[0.5] transition-opacity ease-out ${
-            showA ? 'opacity-0' : 'opacity-[0.42]'
+            showA ? 'opacity-0' : 'opacity-[0.52]'
           }`}
           style={{ transitionDuration: `${HERO_BG_CROSSFADE_MS}ms` }}
           src={heroBgB}
@@ -621,7 +622,7 @@ function HomePage(): ReactElement {
         />
         {/* Spotlight sombre au centre pour lisibilité du logo (sans “carré” derrière) */}
         <div
-          className="absolute inset-0 [background:radial-gradient(70%_55%_at_50%_35%,rgba(0,0,0,0.42)_0%,rgba(0,0,0,0.14)_48%,rgba(0,0,0,0.62)_100%)]"
+          className="absolute inset-0 [background:radial-gradient(70%_55%_at_50%_35%,rgba(0,0,0,0.32)_0%,rgba(0,0,0,0.10)_48%,rgba(0,0,0,0.52)_100%)]"
           aria-hidden
         />
         <div
