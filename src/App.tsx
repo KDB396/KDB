@@ -710,8 +710,9 @@ function HomePage(): ReactElement {
           <div className="overflow-hidden rounded-[1.35rem] border border-white/[0.06] bg-[#0a0a0a] p-[10px] shadow-[0_24px_64px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(0,255,157,0.06),inset_0_1px_0_rgba(255,255,255,0.04)]">
             {/* Spotify EP EXIT */}
             <iframe
+            data-testid="embed-iframe"
               style={{ borderRadius: '12px' }}
-              src="https://open.spotify.com/embed/album/3IKatiK62lDIKTqZK5l7Sv?utm_source=generator"
+            src="https://open.spotify.com/embed/album/4Zv5t3g79jwsY6xERBppNo?utm_source=generator"
               width="100%"
               height="352"
               frameBorder="0"
